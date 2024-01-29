@@ -24,6 +24,19 @@ public class MyKeyListener implements KeyListener {
             case '-':
                 model.lessenModel();
                 break;
+            case 'd':
+                model.transformX(model.MOVEMENT);
+                break;
+            case 'a':
+                model.transformX(-model.MOVEMENT);
+                break;
+            case 'w':
+                model.transformY(-model.MOVEMENT);
+                break;
+            case 's':
+                model.transformY(model.MOVEMENT);
+                break;
+
         }
         renderPanel.repaint();
     }
