@@ -25,11 +25,13 @@ public class Viewer {
             pane.setLayout(new BorderLayout());
 
             // slider to control horizontal rotation
-            JSlider headingSlider = new JSlider(0, 360, 180);
+            //JSlider headingSlider = new JSlider(0, 360, 180);
+            JSlider headingSlider = new JSlider(0, 180, 90);
             pane.add(headingSlider, BorderLayout.SOUTH);
 
             // slider to control vertical rotation
-            JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, 0, 360, 0);
+            //JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, 0, 360, 0);
+            JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, 0, 180, 90);
             pane.add(pitchSlider, BorderLayout.EAST);
 
             // panel to display render results
@@ -38,7 +40,7 @@ public class Viewer {
                     g2 = (Graphics2D) g;
                     g2.setColor(Color.BLACK);
                     g2.fillRect(0, 0, getWidth(), getHeight());
-                    // rendering magic will happen here
+                    // rendering
                     drawOrtographicProection();
                 }
             };
