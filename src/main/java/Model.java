@@ -5,11 +5,18 @@ import java.util.ArrayList;
 public class Model {
 
     public final int ZOOM_POWER = 2;
-    public final int MOVEMENT = 10;
+    public final double MOVEMENT = 0.01;
     public final
 
     ArrayList<Vertex> vertexes;
     ArrayList<Polygon> polygons;
+
+    public SimpleMatrix modelMatrix = new SimpleMatrix(new double[][] {
+                new double[]{50, 0, 0, 0},
+                new double[]{0, 50, 0, 0},
+                new double[]{0, 0, 50, 0},
+                new double[]{0, 0, 0, 1},
+    });
 
     public Model() {
         vertexes = new ArrayList<Vertex>();
@@ -31,7 +38,8 @@ public class Model {
                 new double[]{0, 0, ZOOM_POWER, 0},
                 new double[]{0, 0, 0, 1},
         });
-        multuplyString(zoomMatrix);
+        SimpleMatrix result = modelMatrix.mult(zoomMatrix);
+        modelMatrix = result;
     }
 
     public void lessenModel(){
@@ -42,7 +50,8 @@ public class Model {
                 new double[]{0, 0, zoomPower, 0},
                 new double[]{0, 0, 0, 1},
         });
-        multuplyString(zoomMatrix);
+        SimpleMatrix result = modelMatrix.mult(zoomMatrix);
+        modelMatrix = result;
     }
 
     public void rotateX(double rotation){
@@ -52,7 +61,8 @@ public class Model {
                 new double[]{0, Math.sin(rotation), Math.cos(rotation), 0},
                 new double[]{0, 0, 0, 1},
         });
-        multuplyString(transformMatrix);
+        SimpleMatrix result = modelMatrix.mult(transformMatrix);
+        modelMatrix = result;
     }
 
     public void rotateY(double rotation){
@@ -62,56 +72,46 @@ public class Model {
                 new double[]{-Math.sin(rotation), 0, Math.cos(rotation), 0},
                 new double[]{0, 0, 0, 1},
         });
-        multuplyString(transformMatrix);
+        SimpleMatrix result = transformMatrix.mult(modelMatrix);
+        modelMatrix = result;
 
     }
 
-    public void transformX(int movement){
-        SimpleMatrix transformMatrix = new SimpleMatrix(new double[][] {
-                new double[]{1, 0, 0, movement},
-                new double[]{0, 1, 0, 0},
-                new double[]{0, 0, 1, 0},
-                new double[]{0, 0, 0, 1},
+    public void transformX(double movement){
+        double currentPosition = modelMatrix.get(0, 3);
+        modelMatrix.set(0, 3, currentPosition+movement);
+    }
+
+    public void transformY(double movement){
+        double currentPosition = modelMatrix.get(1, 3);
+        modelMatrix.set(1, 3, currentPosition+movement);
+    }
+
+    public Vertex multuplyColumn(SimpleMatrix currentMatrix, Vertex v){
+        SimpleMatrix vertex = new SimpleMatrix(new double[][]{
+                new double[]{v.x},
+                new double[]{v.y},
+                new double[]{v.z},
+                new double[]{1},
         });
-        multuplyColumn(transformMatrix);
-    }
-
-    public void transformY(int movement){
-        SimpleMatrix transformMatrix = new SimpleMatrix(new double[][] {
-                new double[]{1, 0, 0, 0},
-                new double[]{0, 1, 0, movement},
-                new double[]{0, 0, 1, 0},
-                new double[]{0, 0, 0, 1},
-        });
-        multuplyColumn(transformMatrix);
-    }
-
-    public void multuplyString(SimpleMatrix currentMatrix){
-        for (Vertex v: vertexes){
-            SimpleMatrix vertex = new SimpleMatrix(new double[][] {
-                    new double[]{v.x, v.y, v.z, 1},
-            });
-            SimpleMatrix result = vertex.mult(currentMatrix);
-            v.x = (float) result.get(0, 0);
-            v.y = (float) result.get(0, 1);
-            v.z = (float) result.get(0, 2);
-        }
-    }
-
-    public void multuplyColumn(SimpleMatrix currentMatrix){
-        for (Vertex v: vertexes) {
-            SimpleMatrix vertex = new SimpleMatrix(new double[][]{
-                    new double[]{v.x},
-                    new double[]{v.y},
-                    new double[]{v.z},
-                    new double[]{1},
-            });
             SimpleMatrix helpMatrix = currentMatrix;
             SimpleMatrix result = helpMatrix.mult(vertex);
             v.x = (float) result.get(0, 0);
             v.y = (float) result.get(1, 0);
             v.z = (float) result.get(2, 0);
+        return v;
+    }
+
+    public double getModelDepth(){
+        double zMin = 10.0;
+        double zMax = 100.0;
+        for(Vertex v: vertexes){
+            if (v.z > zMax)
+                zMax = v.z;
+            else if (v.z < zMin)
+                zMin = v.z;
         }
+        return zMax - zMin;
     }
 
     @Override

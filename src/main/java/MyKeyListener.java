@@ -31,10 +31,10 @@ public class MyKeyListener implements KeyListener {
                 model.transformX(-model.MOVEMENT);
                 break;
             case 'w':
-                model.transformY(-model.MOVEMENT);
+                model.transformY(model.MOVEMENT);
                 break;
             case 's':
-                model.transformY(model.MOVEMENT);
+                model.transformY(-model.MOVEMENT);
                 break;
 
         }
