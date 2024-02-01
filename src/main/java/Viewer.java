@@ -1,4 +1,5 @@
 import org.ejml.simple.SimpleMatrix;
+import org.w3c.dom.css.RGBColor;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -8,6 +9,9 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.Raster;
 
 public class Viewer {
 
@@ -31,14 +35,16 @@ public class Viewer {
             pane.setLayout(new BorderLayout());
 
             // slider to control horizontal rotation
-            //JSlider headingSlider = new JSlider(0, 360, 180);
             JSlider headingSlider = new JSlider(0, 180, 90);
             pane.add(headingSlider, BorderLayout.SOUTH);
 
             // slider to control vertical rotation
-            //JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, 0, 360, 0);
             JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, 0, 180, 90);
             pane.add(pitchSlider, BorderLayout.EAST);
+
+            // slider to control Z-rotation
+            JSlider zSlider = new JSlider(SwingConstants.VERTICAL, 0, 180, 90);
+            pane.add(zSlider, BorderLayout.WEST);
 
             // panel to display render results
             renderPanel = new JPanel() {
@@ -54,6 +60,7 @@ public class Viewer {
             MySliderListener sliderListener = new MySliderListener(model, renderPanel, this);
             pitchSlider.addChangeListener(e -> sliderListener.pitchListener(pitchSlider.getValue()));
             headingSlider.addChangeListener(e -> sliderListener.headingListener(headingSlider.getValue()));
+            zSlider.addChangeListener(e -> sliderListener.zListener(zSlider.getValue()));
             pane.add(renderPanel, BorderLayout.CENTER);
             frame.setExtendedState(Frame.MAXIMIZED_BOTH);
             frame.setVisible(true);
@@ -61,14 +68,24 @@ public class Viewer {
 
 
         public void drawOrtographicProection(){
+
+// Potentially good drawing, but doesn't work
+//            BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_RGB);
+//            for (int i = 0; i < frame.getWidth(); i++){
+//                for (int j = 0; j < frame.getHeight(); j++){
+//                    image.setRGB(i, j, 0xff0000);
+//                }
+//            }
+//            g2.drawImage(image, 0, 0, null);
+
             SimpleMatrix viewport = new SimpleMatrix(new double[][] {
-                    new double[]{frame.getWidth() / 2, 0, 0, frame.getWidth() / 2},
-                    new double[]{0, -frame.getHeight() / 2, 0, frame.getHeight() / 2},
+                    new double[]{frame.getWidth() / 2d, 0, 0, frame.getWidth() / 2d},
+                    new double[]{0, -frame.getHeight() / 2d, 0, frame.getHeight() / 2d},
                     new double[]{0, 0, 1, 0},
                     new double[]{0, 0, 0, 1},
             });
 
-            double aspect = frame.getWidth()/frame.getHeight();
+            double aspect = (double)frame.getWidth()/frame.getHeight();
             double FOV = Math.toRadians(60);
             double depth = model.getModelDepth();
             double znear = camera.eye.z;
@@ -80,7 +97,6 @@ public class Viewer {
                     new double[]{0, 0, zfar / (znear - zfar), zfar * znear / (znear - zfar)},
                     new double[]{0, 0, -1, 0},
             });
-            //g2.translate(frame.getWidth() / 2, frame.getHeight() / 2);
             g2.setColor(Color.WHITE);
             camera.cameraNormalize();
             for (Polygon t : model.polygons) {
@@ -90,22 +106,47 @@ public class Viewer {
                 v1 = model.multuplyColumn(model.modelMatrix, v1);
                 v2 = model.multuplyColumn(model.modelMatrix, v2);
                 v3 = model.multuplyColumn(model.modelMatrix, v3);
-                //v1 = model.multuplyColumn(camera.view, v1);
-                //v2 = model.multuplyColumn(camera.view, v2);
-                //v3 = model.multuplyColumn(camera.view, v3);
+                //
+                v1 = model.multuplyColumn(camera.view, v1);
+                v2 = model.multuplyColumn(camera.view, v2);
+                v3 = model.multuplyColumn(camera.view, v3);
+                //
                 v1 = model.multuplyColumn(projection, v1);
                 v2 = model.multuplyColumn(projection, v2);
                 v3 = model.multuplyColumn(projection, v3);
                 v1 = model.multuplyColumn(viewport, v1);
                 v2 = model.multuplyColumn(viewport, v2);
                 v3 = model.multuplyColumn(viewport, v3);
-                Path2D path = new Path2D.Double();
-                path.moveTo(v1.x, v1.y);
-                path.lineTo(v2.x, v2.y);
-                path.lineTo(v3.x, v3.y);
-                path.closePath();
-                g2.draw(path);
+                drawPolygon(v1, v2, v3);
+//                Path2D path = new Path2D.Double(); //default drawing
+//                path.moveTo(v1.x, v1.y);
+//                path.lineTo(v2.x, v2.y);
+//                path.lineTo(v3.x, v3.y);
+//                path.closePath();
+//                g2.draw(path);
 
+            }
+        }
+
+        public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
+            drawDDALine(v1.x, v1.y, v2.x, v2.y);
+            drawDDALine(v2.x, v2.y, v3.x, v3.y);
+            drawDDALine(v3.x, v3.y, v1.x, v1.y);
+        }
+
+        public void drawDDALine(float x1, float y1, float x2, float y2){
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            int step;
+            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
+            float xInc = dx / step;
+            float yInc = dy / step;
+            float x = x1;
+            float y = y1;
+            for (int i = 0; i <= step; i++){
+                g2.fillRect(Math.round(x), Math.round(y), 1, 1);
+                x += xInc;
+                y += yInc;
             }
         }
 

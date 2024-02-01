@@ -36,7 +36,6 @@ public class MyKeyListener implements KeyListener {
             case 's':
                 model.transformY(-model.MOVEMENT);
                 break;
-
         }
         renderPanel.repaint();
     }

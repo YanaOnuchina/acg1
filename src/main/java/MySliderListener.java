@@ -26,4 +26,11 @@ public class MySliderListener {
         viewer.frame.requestFocus();
     }
 
+    public void zListener(int value){
+        double heading = Math.toRadians(value) / 10;
+        model.rotateZ(heading);
+        renderPanel.repaint();
+        viewer.frame.requestFocus();
+    }
+
 }

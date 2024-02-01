@@ -4,7 +4,7 @@ public class Vertex {
     float z;
 
     public Vertex(float x, float y, float z) {
-        this.x = x; //scale to make model's size visible
+        this.x = x;
         this.y = y;
         this.z = z;
     }

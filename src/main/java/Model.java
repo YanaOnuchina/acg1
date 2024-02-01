@@ -77,6 +77,17 @@ public class Model {
 
     }
 
+    public void rotateZ(double rotation){
+        SimpleMatrix transformMatrix = new SimpleMatrix(new double[][] {
+                new double[]{Math.cos(rotation), -Math.sin(rotation), 0, 0},
+                new double[]{Math.sin(rotation), Math.cos(rotation), 0, 0},
+                new double[]{0, 0, 1, 0},
+                new double[]{0, 0, 0, 1},
+        });
+        SimpleMatrix result = transformMatrix.mult(modelMatrix);
+        modelMatrix = result;
+    }
+
     public void transformX(double movement){
         double currentPosition = modelMatrix.get(0, 3);
         modelMatrix.set(0, 3, currentPosition+movement);
