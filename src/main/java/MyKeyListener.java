@@ -9,9 +9,10 @@ public class MyKeyListener implements KeyListener {
     Viewer viewer;
     JPanel renderPanel;
 
-    public MyKeyListener(Model model, JPanel renderPanel){
+    public MyKeyListener(Model model, JPanel renderPanel, Viewer viewer){
         this.model = model;
         this.renderPanel = renderPanel;
+        this.viewer = viewer;
     }
 
     @Override
@@ -35,6 +36,20 @@ public class MyKeyListener implements KeyListener {
                 break;
             case 's':
                 model.transformY(-model.MOVEMENT);
+                break;
+            case 'k':
+                viewer.camera.moveHorizontal(viewer.camera.ANGLE_MOVEMENT);
+                break;
+            case 'j':
+                viewer.camera.moveHorizontal(-viewer.camera.ANGLE_MOVEMENT);
+                break;
+            case 'i':
+                viewer.camera.moveVertical(viewer.camera.ANGLE_MOVEMENT);
+                viewer.camera.isVertMove = true;
+                break;
+            case 'm':
+                viewer.camera.moveVertical(-viewer.camera.ANGLE_MOVEMENT);
+                viewer.camera.isVertMove = true;
                 break;
         }
         renderPanel.repaint();

@@ -1,17 +1,6 @@
 import org.ejml.simple.SimpleMatrix;
-import org.w3c.dom.css.RGBColor;
-
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.geom.Path2D;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.awt.image.Raster;
 
 public class Viewer {
 
@@ -126,6 +115,10 @@ public class Viewer {
 //                g2.draw(path);
 
             }
+//            g2.drawString(("eye: " + camera.eye.x + "; " +  camera.eye.y + "; " + camera.eye.z), 10, 10);
+//            SphericalCoordinates sc = camera.convertCoordinatesToSpherical(camera.eye.x, camera.eye.y, camera.eye.z);
+//            g2.drawString(("theta: " + sc.theta + "; phi " +  sc.phi), 10, 25);
+//            g2.drawString(("up: " + camera.up.x + "; " +  camera.up.y + "; " + camera.up.z), 10, 40);
         }
 
         public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
