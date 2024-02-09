@@ -66,7 +66,7 @@ public class Viewer {
             });
 
             double aspect = (double)frame.getWidth()/frame.getHeight();
-            double FOV = Math.toRadians(60);
+            double FOV = Math.toRadians(90);
             double depth = model.getModelDepth();
             double znear = camera.eye.z;
             double zfar = depth + znear;
@@ -94,6 +94,11 @@ public class Viewer {
                 v1 = model.multuplyColumn(projection, v1);
                 v2 = model.multuplyColumn(projection, v2);
                 v3 = model.multuplyColumn(projection, v3);
+
+                v1.deformation();
+                v2.deformation();
+                v3.deformation();
+
                 v1 = model.multuplyColumn(viewport, v1);
                 v2 = model.multuplyColumn(viewport, v2);
                 v3 = model.multuplyColumn(viewport, v3);

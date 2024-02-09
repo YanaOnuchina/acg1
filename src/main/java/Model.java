@@ -103,13 +103,14 @@ public class Model {
                 new double[]{v.x},
                 new double[]{v.y},
                 new double[]{v.z},
-                new double[]{1},
+                new double[]{v.w},
         });
             SimpleMatrix helpMatrix = currentMatrix;
             SimpleMatrix result = helpMatrix.mult(vertex);
             v.x = (float) result.get(0, 0);
             v.y = (float) result.get(1, 0);
             v.z = (float) result.get(2, 0);
+            v.w = (float) result.get(3, 0);
         return v;
     }
 

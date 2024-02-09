@@ -2,11 +2,13 @@ public class Vertex {
     float x;
     float y;
     float z;
+    float w;
 
     public Vertex(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.w = 1;
     }
 
     public static Vertex vertexDifference(Vertex v1, Vertex v2){
@@ -33,6 +35,13 @@ public class Vertex {
         v.z = (float) (v.z/length);
         return v;
 
+    }
+
+    public void deformation(){
+        this.x = this.x/this.w;
+        this.y = this.y/this.w;
+        this.z = this.z/this.w;
+        this.w = this.w/this.w;
     }
 
     @Override

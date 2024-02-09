@@ -4,7 +4,7 @@ public class Main {
         ObjParser parser = new ObjParser();
         Model model = parser.readFile();
         Viewer viewer = new Viewer();
-        Camera camera = new Camera(new Vertex(1, 0, 10), new Vertex(0, 0, 0), new Vertex(0, 1, 0));
+        Camera camera = new Camera(new Vertex(1, 0, 100), new Vertex(0, 0, 0), new Vertex(0, 1, 0));
         viewer.addModel(model);
         viewer.addCamera(camera);
         viewer.draw();
