@@ -6,7 +6,7 @@ public class Camera {
     SimpleMatrix view;
     Boolean isVertMove;
 
-    public final float ANGLE_MOVEMENT = (float) Math.PI / 16;
+    public final float ANGLE_MOVEMENT = (float) Math.PI / 32;
 
 
     public Camera(Vertex eye, Vertex target, Vertex up){
@@ -35,8 +35,7 @@ public class Camera {
 
     public SphericalCoordinates convertCoordinatesToSpherical(float x, float y, float z){
         float r = (float) Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
-        float phi = x != 0 ? (float) Math.atan(y/x) : 0;
-        //float phi = x != 0 ? (float) Math.atan(y/x) : (float) (Math.PI / 2);
+        float phi = x != 0 ? (float) Math.atan(y/x) : (float) (Math.PI / 2);
         float theta = (float) Math.acos(z/(r));
         if (x < 0) theta *= -1;
 
@@ -46,18 +45,12 @@ public class Camera {
     public void moveHorizontal(float movementSize){
         SphericalCoordinates coord = convertCoordinatesToSpherical(eye.x, eye.y, eye.z);
         coord.theta += movementSize;
-        //SphericalCoordinates upCoord = new SphericalCoordinates(1f, (float)(coord.theta + Math.PI / 2), (float)(coord.phi + Math.PI));
-//        up = Vertex.normalize(upCoord.convertToDecartCoordinates());
         eye = coord.convertToDecartCoordinates();
     }
 
     public void moveVertical(float movementSize) {
         SphericalCoordinates coord = convertCoordinatesToSpherical(eye.x, eye.y, eye.z);
-        if (coord.phi + movementSize < (float)Math.PI / 2 && coord.phi + movementSize > (float)-Math.PI / 2) coord.phi += movementSize;
-        //
-        //SphericalCoordinates upCoord = new SphericalCoordinates(1f, (float)(coord.theta + Math.PI / 2), (float)(coord.phi + Math.PI));
-//        up = Vertex.normalize(upCoord.convertToDecartCoordinates());
-        //
+        if (coord.phi + movementSize < (float)Math.PI / 2 - 0.1 && coord.phi + movementSize > (float)-Math.PI / 2 + 0.1) coord.phi += movementSize;
         eye = coord.convertToDecartCoordinates();
 
     }

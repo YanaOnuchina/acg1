@@ -58,15 +58,6 @@ public class Viewer {
 
         public void drawOrtographicProection(){
 
-// Potentially good drawing, but doesn't work
-//            BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_RGB);
-//            for (int i = 0; i < frame.getWidth(); i++){
-//                for (int j = 0; j < frame.getHeight(); j++){
-//                    image.setRGB(i, j, 0xff0000);
-//                }
-//            }
-//            g2.drawImage(image, 0, 0, null);
-
             SimpleMatrix viewport = new SimpleMatrix(new double[][] {
                     new double[]{frame.getWidth() / 2d, 0, 0, frame.getWidth() / 2d},
                     new double[]{0, -frame.getHeight() / 2d, 0, frame.getHeight() / 2d},
@@ -115,10 +106,6 @@ public class Viewer {
 //                g2.draw(path);
 
             }
-//            g2.drawString(("eye: " + camera.eye.x + "; " +  camera.eye.y + "; " + camera.eye.z), 10, 10);
-//            SphericalCoordinates sc = camera.convertCoordinatesToSpherical(camera.eye.x, camera.eye.y, camera.eye.z);
-//            g2.drawString(("theta: " + sc.theta + "; phi " +  sc.phi), 10, 25);
-//            g2.drawString(("up: " + camera.up.x + "; " +  camera.up.y + "; " + camera.up.z), 10, 40);
         }
 
         public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
