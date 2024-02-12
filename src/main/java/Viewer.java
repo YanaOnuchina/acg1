@@ -80,29 +80,34 @@ public class Viewer {
             g2.setColor(Color.WHITE);
             camera.cameraNormalize();
             for (Polygon t : model.polygons) {
-                Vertex v1 = new Vertex(t.v1.x/100, t.v1.y/100, t.v1.z/100);
-                Vertex v2 = new Vertex(t.v2.x/100, t.v2.y/100, t.v2.z/100);
-                Vertex v3 = new Vertex(t.v3.x/100, t.v3.y/100, t.v3.z/100);
-                v1 = model.multuplyColumn(model.modelMatrix, v1);
-                v2 = model.multuplyColumn(model.modelMatrix, v2);
-                v3 = model.multuplyColumn(model.modelMatrix, v3);
+                Polygon tCopy = new Polygon(new Vertex(t.v1.x, t.v1.y, t.v1.z),
+                        new Vertex(t.v2.x, t.v2.y, t.v2.z),
+                        new Vertex(t.v3.x, t.v3.y, t.v3.z));
+//                Vertex v1 = new Vertex(t.v1.x/100, t.v1.y/100, t.v1.z/100);
+//                Vertex v2 = new Vertex(t.v2.x/100, t.v2.y/100, t.v2.z/100);
+//                Vertex v3 = new Vertex(t.v3.x/100, t.v3.y/100, t.v3.z/100);
+                tCopy.v1 = model.multuplyColumn(model.modelMatrix, tCopy.v1);
+                tCopy.v2 = model.multuplyColumn(model.modelMatrix, tCopy.v2);
+                tCopy.v3 = model.multuplyColumn(model.modelMatrix, tCopy.v3);
                 //
-                v1 = model.multuplyColumn(camera.view, v1);
-                v2 = model.multuplyColumn(camera.view, v2);
-                v3 = model.multuplyColumn(camera.view, v3);
+                tCopy.v1 = model.multuplyColumn(camera.view, tCopy.v1);
+                tCopy.v2 = model.multuplyColumn(camera.view, tCopy.v2);
+                tCopy.v3 = model.multuplyColumn(camera.view, tCopy.v3);
                 //
-                v1 = model.multuplyColumn(projection, v1);
-                v2 = model.multuplyColumn(projection, v2);
-                v3 = model.multuplyColumn(projection, v3);
+                tCopy.v1 = model.multuplyColumn(projection, tCopy.v1);
+                tCopy.v2 = model.multuplyColumn(projection, tCopy.v2);
+                tCopy.v3 = model.multuplyColumn(projection, tCopy.v3);
 
-                v1.deformation();
-                v2.deformation();
-                v3.deformation();
+                tCopy.v1.deformation();
+                tCopy.v2.deformation();
+                tCopy.v3.deformation();
 
-                v1 = model.multuplyColumn(viewport, v1);
-                v2 = model.multuplyColumn(viewport, v2);
-                v3 = model.multuplyColumn(viewport, v3);
-                drawPolygon(v1, v2, v3);
+                tCopy.v1 = model.multuplyColumn(viewport, tCopy.v1);
+                tCopy.v2 = model.multuplyColumn(viewport, tCopy.v2);
+                tCopy.v3 = model.multuplyColumn(viewport, tCopy.v3);
+                tCopy.sort();
+                fillPolygon(tCopy);
+//                drawPolygon(tCopy.v1, tCopy.v2, tCopy.v3);
 //                Path2D path = new Path2D.Double(); //default drawing
 //                path.moveTo(v1.x, v1.y);
 //                path.lineTo(v2.x, v2.y);
@@ -117,6 +122,33 @@ public class Viewer {
             drawDDALine(v1.x, v1.y, v2.x, v2.y);
             drawDDALine(v2.x, v2.y, v3.x, v3.y);
             drawDDALine(v3.x, v3.y, v1.x, v1.y);
+        }
+
+        public void fillPolygon(Polygon t){
+            float crossX1;
+            float crossX2;
+            float dx1 = t.v2.x - t.v1.x;
+            float dy1 = t.v2.y - t.v1.y;
+            float dx2 = t.v3.x - t.v1.x;
+            float dy2 = t.v3.y - t.v1.y;
+            float topY = t.v1.y;
+
+            while(topY < t.v2.y){
+                crossX1 = t.v1.x + dx1 * (topY - t.v1.y) / dy1;
+                crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
+                drawDDALine(crossX1, topY, crossX2, topY);
+                topY++;
+            }
+
+            dx1 = t.v3.x - t.v2.x;
+            dy1 = t.v3.y - t.v2.y;
+
+            while(topY < t.v3.y){
+                crossX1 = t.v2.x + dx1 * (topY - t.v2.y) / dy1;
+                crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
+                drawDDALine(crossX1, topY, crossX2, topY);
+                topY++;
+            }
         }
 
         public void drawDDALine(float x1, float y1, float x2, float y2){
