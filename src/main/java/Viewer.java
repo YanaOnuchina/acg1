@@ -1,6 +1,8 @@
 import org.ejml.simple.SimpleMatrix;
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.Random;
 
 public class Viewer {
 
@@ -9,6 +11,7 @@ public class Viewer {
         Model model;
         JPanel renderPanel;
         Camera camera;
+        float[][] zBuffer;
 
         public void addModel(Model model){
             this.model = model;
@@ -42,7 +45,7 @@ public class Viewer {
                     g2.setColor(Color.BLACK);
                     g2.fillRect(0, 0, getWidth(), getHeight());
                     // rendering
-                    drawOrtographicProection();
+                    drawProection();
                 }
             };
             //здесь я верчу кокату на чем хочу
@@ -53,10 +56,13 @@ public class Viewer {
             pane.add(renderPanel, BorderLayout.CENTER);
             frame.setExtendedState(Frame.MAXIMIZED_BOTH);
             frame.setVisible(true);
+            zBuffer = new float[frame.getHeight()][frame.getWidth()];
+            freeZbuffer();
+            frame.requestFocus();
         }
 
 
-        public void drawOrtographicProection(){
+        public void drawProection(){
 
             SimpleMatrix viewport = new SimpleMatrix(new double[][] {
                     new double[]{frame.getWidth() / 2d, 0, 0, frame.getWidth() / 2d},
@@ -77,15 +83,17 @@ public class Viewer {
                     new double[]{0, 0, zfar / (znear - zfar), zfar * znear / (znear - zfar)},
                     new double[]{0, 0, -1, 0},
             });
-            g2.setColor(Color.WHITE);
+
+            freeZbuffer();
+            //g2.setColor(Color.WHITE);
+            Random random = new Random();
             camera.cameraNormalize();
             for (Polygon t : model.polygons) {
+                g2.setColor(new Color(random.nextFloat(), random.nextFloat(), random.nextFloat()));
                 Polygon tCopy = new Polygon(new Vertex(t.v1.x, t.v1.y, t.v1.z),
                         new Vertex(t.v2.x, t.v2.y, t.v2.z),
                         new Vertex(t.v3.x, t.v3.y, t.v3.z));
-//                Vertex v1 = new Vertex(t.v1.x/100, t.v1.y/100, t.v1.z/100);
-//                Vertex v2 = new Vertex(t.v2.x/100, t.v2.y/100, t.v2.z/100);
-//                Vertex v3 = new Vertex(t.v3.x/100, t.v3.y/100, t.v3.z/100);
+
                 tCopy.v1 = model.multuplyColumn(model.modelMatrix, tCopy.v1);
                 tCopy.v2 = model.multuplyColumn(model.modelMatrix, tCopy.v2);
                 tCopy.v3 = model.multuplyColumn(model.modelMatrix, tCopy.v3);
@@ -127,31 +135,72 @@ public class Viewer {
         public void fillPolygon(Polygon t){
             float crossX1;
             float crossX2;
+            float crossZ1;
+            float crossZ2;
             float dx1 = t.v2.x - t.v1.x;
             float dy1 = t.v2.y - t.v1.y;
+            float dz1 = t.v2.z - t.v1.z;
             float dx2 = t.v3.x - t.v1.x;
             float dy2 = t.v3.y - t.v1.y;
+            float dz2 = t.v3.z - t.v1.z;
             float topY = t.v1.y;
 
             while(topY < t.v2.y){
                 crossX1 = t.v1.x + dx1 * (topY - t.v1.y) / dy1;
                 crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
-                drawDDALine(crossX1, topY, crossX2, topY);
+                crossZ1 = t.v1.z + dz1 * (topY - t.v1.y) / dy1;
+                crossZ2 = t.v1.z + dz2 * (topY - t.v1.y) / dy2;
+                drawDDALine(crossX1, topY, crossZ1, crossX2, topY, crossZ2);
                 topY++;
             }
 
             dx1 = t.v3.x - t.v2.x;
             dy1 = t.v3.y - t.v2.y;
+            dz1 = t.v3.z - t.v2.z;
 
             while(topY < t.v3.y){
                 crossX1 = t.v2.x + dx1 * (topY - t.v2.y) / dy1;
                 crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
-                drawDDALine(crossX1, topY, crossX2, topY);
+                crossZ1 = t.v2.z + dz1 * (topY - t.v2.y) / dy1;
+                crossZ2 = t.v1.z + dz2 * (topY - t.v1.y) / dy2;
+                drawDDALine(crossX1, topY, crossZ1, crossX2, topY, crossZ2);
                 topY++;
             }
         }
 
-        public void drawDDALine(float x1, float y1, float x2, float y2){
+        public void drawDDALine(float x1, float y1, float z1, float x2, float y2, float z2){
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+            float dz = z2 - z1;
+            int step;
+            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
+            float xInc = dx / step;
+            float yInc = dy / step;
+            float zInc = dz / step;
+            float x = x1;
+            float y = y1;
+            float z = z1;
+            for (int i = 0; i <= step; i++){
+                //
+                int indexX = (Math.round(x) < frame.getWidth() ? Math.round(x) : frame.getWidth() - 1);
+                int indexY = (Math.round(y) < frame.getHeight() ? Math.round(y) : frame.getHeight() - 1);
+                try {
+                    if ((zBuffer[indexY][indexX] < z && camera.eye.z > 0) || (zBuffer[indexY][indexX] > z && camera.eye.z < 0)) {
+                        zBuffer[indexY][indexX] = z;
+                        g2.fillRect(indexX, indexY, 1, 1);
+                    }
+                }
+                catch (IndexOutOfBoundsException ignored){
+
+                }
+                //
+                x += xInc;
+                y += yInc;
+                z += zInc;
+            }
+        }
+
+        public void drawDDALine(float x1, float y1, float x2, float y2) {
             float dx = x2 - x1;
             float dy = y2 - y1;
             int step;
@@ -160,10 +209,16 @@ public class Viewer {
             float yInc = dy / step;
             float x = x1;
             float y = y1;
-            for (int i = 0; i <= step; i++){
+            for (int i = 0; i <= step; i++) {
                 g2.fillRect(Math.round(x), Math.round(y), 1, 1);
                 x += xInc;
                 y += yInc;
+            }
+        }
+
+        public void freeZbuffer(){
+            for (float[] row: zBuffer) {
+                Arrays.fill(row, Float.MIN_VALUE);
             }
         }
 

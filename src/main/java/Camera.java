@@ -37,8 +37,8 @@ public class Camera {
         float r = (float) Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
         float phi = x != 0 ? (float) Math.atan(y/x) : (float) (Math.PI / 2);
         float theta = (float) Math.acos(z/(r));
-        if (x < 0) theta *= -1;
-
+        if (x < 0)
+            theta *= -1;
         return new SphericalCoordinates(r, theta, phi);
     }
 

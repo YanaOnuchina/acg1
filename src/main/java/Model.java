@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Model {
 
     public final int ZOOM_POWER = 2;
-    public final double MOVEMENT = 0.01;
+    public final double MOVEMENT = 10;
     public final
 
     ArrayList<Vertex> vertexes;
@@ -115,8 +115,10 @@ public class Model {
     }
 
     public double getModelDepth(){
-        double zMin = 10.0;
-        double zMax = 100.0;
+//        double zMin = 10.0;
+//        double zMax = 100.0;
+        double zMin = Double.MAX_VALUE;
+        double zMax = Double.MIN_VALUE;
         for(Vertex v: vertexes){
             if (v.z > zMax)
                 zMax = v.z;
