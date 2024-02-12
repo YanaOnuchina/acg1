@@ -126,11 +126,11 @@ public class Viewer {
             }
         }
 
-        public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
-            drawDDALine(v1.x, v1.y, v2.x, v2.y);
-            drawDDALine(v2.x, v2.y, v3.x, v3.y);
-            drawDDALine(v3.x, v3.y, v1.x, v1.y);
-        }
+//        public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
+//            drawDDALine(v1.x, v1.y, v2.x, v2.y);
+//            drawDDALine(v2.x, v2.y, v3.x, v3.y);
+//            drawDDALine(v3.x, v3.y, v1.x, v1.y);
+//        }
 
         public void fillPolygon(Polygon t){
             float crossX1;
@@ -200,21 +200,21 @@ public class Viewer {
             }
         }
 
-        public void drawDDALine(float x1, float y1, float x2, float y2) {
-            float dx = x2 - x1;
-            float dy = y2 - y1;
-            int step;
-            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
-            float xInc = dx / step;
-            float yInc = dy / step;
-            float x = x1;
-            float y = y1;
-            for (int i = 0; i <= step; i++) {
-                g2.fillRect(Math.round(x), Math.round(y), 1, 1);
-                x += xInc;
-                y += yInc;
-            }
-        }
+//        public void drawDDALine(float x1, float y1, float x2, float y2) {
+//            float dx = x2 - x1;
+//            float dy = y2 - y1;
+//            int step;
+//            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
+//            float xInc = dx / step;
+//            float yInc = dy / step;
+//            float x = x1;
+//            float y = y1;
+//            for (int i = 0; i <= step; i++) {
+//                g2.fillRect(Math.round(x), Math.round(y), 1, 1);
+//                x += xInc;
+//                y += yInc;
+//            }
+//        }
 
         public void freeZbuffer(){
             for (float[] row: zBuffer) {
