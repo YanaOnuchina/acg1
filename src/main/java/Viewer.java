@@ -65,7 +65,7 @@ public class Viewer {
 
         public void drawProection(){
 
-            zBuffer = new float[2000][3000];
+            zBuffer = new float[frame.getHeight()][frame.getWidth()];
             freeZbuffer();
             SimpleMatrix viewport = new SimpleMatrix(new double[][] {
                     new double[]{frame.getWidth() / 2d, 0, 0, frame.getWidth() / 2d},
@@ -126,8 +126,8 @@ public class Viewer {
                 Vertex light = new Vertex(0, 0, 100);
                 light = Vertex.normalize(light);
                 float angle = normal.x * light.x + normal.y * light.y + normal.z * light.z;
-                float shade = angle * 255;
-                int lightning = Math.round(Math.abs(shade));
+                double shade = (Math.pow(255, 2.4) * angle);
+                int lightning = (int) Math.pow(shade, 1/2.4);
                 g2.setColor(new Color(lightning, lightning, lightning));
                 if (decision > 0) {
                     fillPolygon(tCopy);
