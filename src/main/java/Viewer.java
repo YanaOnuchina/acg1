@@ -1,6 +1,7 @@
 import org.ejml.simple.SimpleMatrix;
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -56,14 +57,16 @@ public class Viewer {
             pane.add(renderPanel, BorderLayout.CENTER);
             frame.setExtendedState(Frame.MAXIMIZED_BOTH);
             frame.setVisible(true);
-            zBuffer = new float[frame.getHeight()][frame.getWidth()];
-            freeZbuffer();
+            //zBuffer = new float[frame.getHeight()][frame.getWidth()];
+            //freeZbuffer();
             frame.requestFocus();
         }
 
 
         public void drawProection(){
 
+            zBuffer = new float[2000][3000];
+            freeZbuffer();
             SimpleMatrix viewport = new SimpleMatrix(new double[][] {
                     new double[]{frame.getWidth() / 2d, 0, 0, frame.getWidth() / 2d},
                     new double[]{0, -frame.getHeight() / 2d, 0, frame.getHeight() / 2d},
@@ -85,11 +88,11 @@ public class Viewer {
             });
 
             freeZbuffer();
-            //g2.setColor(Color.WHITE);
+            g2.setColor(Color.WHITE);
             Random random = new Random();
             camera.cameraNormalize();
             for (Polygon t : model.polygons) {
-                g2.setColor(new Color(random.nextFloat(), random.nextFloat(), random.nextFloat()));
+                //g2.setColor(new Color(random.nextFloat(), random.nextFloat(), random.nextFloat()));
                 Polygon tCopy = new Polygon(new Vertex(t.v1.x, t.v1.y, t.v1.z),
                         new Vertex(t.v2.x, t.v2.y, t.v2.z),
                         new Vertex(t.v3.x, t.v3.y, t.v3.z));
@@ -97,6 +100,7 @@ public class Viewer {
                 tCopy.v1 = model.multuplyColumn(model.modelMatrix, tCopy.v1);
                 tCopy.v2 = model.multuplyColumn(model.modelMatrix, tCopy.v2);
                 tCopy.v3 = model.multuplyColumn(model.modelMatrix, tCopy.v3);
+
                 //
                 tCopy.v1 = model.multuplyColumn(camera.view, tCopy.v1);
                 tCopy.v2 = model.multuplyColumn(camera.view, tCopy.v2);
@@ -114,8 +118,21 @@ public class Viewer {
                 tCopy.v2 = model.multuplyColumn(viewport, tCopy.v2);
                 tCopy.v3 = model.multuplyColumn(viewport, tCopy.v3);
                 tCopy.sort();
-                fillPolygon(tCopy);
-//                drawPolygon(tCopy.v1, tCopy.v2, tCopy.v3);
+
+                Vertex normal = Vertex.vertexMultiplication(tCopy.v1, tCopy.v2);
+                normal = Vertex.normalize(normal);
+                Vertex eyeView = Vertex.vertexDifference(camera.eye, tCopy.v1);
+                float decision = eyeView.x*normal.x + eyeView.y*normal.y + eyeView.z*normal.z;
+                Vertex light = new Vertex(0, 0, 100);
+                light = Vertex.normalize(light);
+                float angle = normal.x * light.x + normal.y * light.y + normal.z * light.z;
+                float shade = angle * 255;
+                int lightning = Math.round(Math.abs(shade));
+                g2.setColor(new Color(lightning, lightning, lightning));
+                if (decision > 0) {
+                    fillPolygon(tCopy);
+                }
+                //drawPolygon(tCopy.v1, tCopy.v2, tCopy.v3);
 //                Path2D path = new Path2D.Double(); //default drawing
 //                path.moveTo(v1.x, v1.y);
 //                path.lineTo(v2.x, v2.y);
@@ -126,11 +143,11 @@ public class Viewer {
             }
         }
 
-//        public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
-//            drawDDALine(v1.x, v1.y, v2.x, v2.y);
-//            drawDDALine(v2.x, v2.y, v3.x, v3.y);
-//            drawDDALine(v3.x, v3.y, v1.x, v1.y);
-//        }
+          /*public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
+            drawDDALine(v1.x, v1.y, v2.x, v2.y);
+            drawDDALine(v2.x, v2.y, v3.x, v3.y);
+            drawDDALine(v3.x, v3.y, v1.x, v1.y);
+       }*/
 
         public void fillPolygon(Polygon t){
             float crossX1;
@@ -150,6 +167,7 @@ public class Viewer {
                 crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
                 crossZ1 = t.v1.z + dz1 * (topY - t.v1.y) / dy1;
                 crossZ2 = t.v1.z + dz2 * (topY - t.v1.y) / dy2;
+                //drawDDALineA(crossX1, topY, crossX2, topY);
                 drawDDALine(crossX1, topY, crossZ1, crossX2, topY, crossZ2);
                 topY++;
             }
@@ -163,9 +181,70 @@ public class Viewer {
                 crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
                 crossZ1 = t.v2.z + dz1 * (topY - t.v2.y) / dy1;
                 crossZ2 = t.v1.z + dz2 * (topY - t.v1.y) / dy2;
+                //drawDDALineA(crossX1, topY, crossX2, topY);
                 drawDDALine(crossX1, topY, crossZ1, crossX2, topY, crossZ2);
                 topY++;
             }
+        }
+
+        //tried to redraw
+        void fillPolygonA(Polygon t){
+            float crossX1;
+            float crossX2;
+            float crossZ1;
+            float crossZ2;
+            float topY = t.v1.y;
+            float crossY = topY;
+
+            while(crossY <= t.v2.y){
+                float tCoef = findT(crossY, t.v2.y, topY);
+                crossX1 = t.v1.x + tCoef*(t.v2.x - t.v1.x);
+                crossZ1 = t.v1.z + tCoef*(t.v2.z - t.v1.z);
+                tCoef = findT(crossY, t.v3.y, topY);
+                crossX2 = t.v1.x + tCoef*(t.v3.x - t.v1.x);
+                crossZ2 = t.v1.z + tCoef*(t.v3.z - t.v1.z);
+                drawDDA(crossX1, crossY, crossZ1, crossX2, crossY, crossZ2);
+                crossY++;
+            }
+
+            while(crossY <= t.v3.y){
+                float tCoef = findT(crossY, t.v3.y, t.v2.y);
+                crossX1 = t.v2.x + tCoef*(t.v3.x - t.v2.x);
+                crossZ1 = t.v2.z + tCoef*(t.v3.z - t.v3.z);
+                tCoef = findT(crossY, t.v3.y, topY);
+                crossX2 = t.v1.x + tCoef*(t.v3.x - t.v1.x);
+                crossZ2 = t.v1.z + tCoef*(t.v3.z - t.v1.z);
+                drawDDA(crossX1, crossY, crossZ1, crossX2, crossY, crossZ2);
+                crossY++;
+            }
+        }
+
+        //tried to redraw
+        float findT(float y, float y1, float y0){
+           float t = (y - y0) / (y1 - y0);
+           return t;
+        }
+
+        //tried to redraw
+        public void drawDDA(float x1, float y1, float z1, float x2, float y2, float z2){
+            float crossX = x1;
+            float crossZ;
+            while(crossX <= x2){
+                float tCoef = findT(crossX, x2, x1);
+                crossZ = z1 + tCoef*(z2 - z1);
+                int indexX = (Math.round(crossX) < frame.getWidth() ? Math.round(crossX) : frame.getWidth() - 1);
+                int indexY = (Math.round(y1) < frame.getHeight() ? Math.round(y1) : frame.getHeight() - 1);
+                try {
+                    if (zBuffer[indexY][indexX] < crossZ) {
+                        zBuffer[indexY][indexX] = crossZ;
+                        g2.fillRect(indexX, indexY, 1, 1);
+                    }
+                }
+                catch (IndexOutOfBoundsException ignored){
+                }
+                crossX++;
+            }
+
         }
 
         public void drawDDALine(float x1, float y1, float z1, float x2, float y2, float z2){
@@ -185,13 +264,12 @@ public class Viewer {
                 int indexX = (Math.round(x) < frame.getWidth() ? Math.round(x) : frame.getWidth() - 1);
                 int indexY = (Math.round(y) < frame.getHeight() ? Math.round(y) : frame.getHeight() - 1);
                 try {
-                    if ((zBuffer[indexY][indexX] < z && camera.eye.z > 0) || (zBuffer[indexY][indexX] > z && camera.eye.z < 0)) {
+                    if ((zBuffer[indexY][indexX] < z && camera.eye.z > 0)|| (zBuffer[indexY][indexX] > z && camera.eye.z < 0)) {
                         zBuffer[indexY][indexX] = z;
                         g2.fillRect(indexX, indexY, 1, 1);
                     }
                 }
                 catch (IndexOutOfBoundsException ignored){
-
                 }
                 //
                 x += xInc;
@@ -200,25 +278,25 @@ public class Viewer {
             }
         }
 
-//        public void drawDDALine(float x1, float y1, float x2, float y2) {
-//            float dx = x2 - x1;
-//            float dy = y2 - y1;
-//            int step;
-//            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
-//            float xInc = dx / step;
-//            float yInc = dy / step;
-//            float x = x1;
-//            float y = y1;
-//            for (int i = 0; i <= step; i++) {
-//                g2.fillRect(Math.round(x), Math.round(y), 1, 1);
-//                x += xInc;
-//                y += yInc;
-//            }
-//        }
+        public void drawDDALineA(float x1, float y1, float x2, float y2) {
+            float dx = x2 - x1;
+            float dy = y2 - y1;
+           int step;
+            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
+            float xInc = dx / step;
+            float yInc = dy / step;
+            float x = x1;
+            float y = y1;
+           for (int i = 0; i <= step; i++) {
+                g2.fillRect(Math.round(x), Math.round(y), 1, 1);
+                x += xInc;
+                y += yInc;
+            }
+       }
 
         public void freeZbuffer(){
             for (float[] row: zBuffer) {
-                Arrays.fill(row, Float.MIN_VALUE);
+                Arrays.fill(row, Float.NEGATIVE_INFINITY);
             }
         }
 
