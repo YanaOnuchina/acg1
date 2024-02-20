@@ -57,8 +57,6 @@ public class Viewer {
             pane.add(renderPanel, BorderLayout.CENTER);
             frame.setExtendedState(Frame.MAXIMIZED_BOTH);
             frame.setVisible(true);
-            //zBuffer = new float[frame.getHeight()][frame.getWidth()];
-            //freeZbuffer();
             frame.requestFocus();
         }
 
@@ -92,7 +90,6 @@ public class Viewer {
             Random random = new Random();
             camera.cameraNormalize();
             for (Polygon t : model.polygons) {
-                //g2.setColor(new Color(random.nextFloat(), random.nextFloat(), random.nextFloat()));
                 Polygon tCopy = new Polygon(new Vertex(t.v1.x, t.v1.y, t.v1.z),
                         new Vertex(t.v2.x, t.v2.y, t.v2.z),
                         new Vertex(t.v3.x, t.v3.y, t.v3.z));
@@ -100,6 +97,11 @@ public class Viewer {
                 tCopy.v1 = model.multuplyColumn(model.modelMatrix, tCopy.v1);
                 tCopy.v2 = model.multuplyColumn(model.modelMatrix, tCopy.v2);
                 tCopy.v3 = model.multuplyColumn(model.modelMatrix, tCopy.v3);
+
+                Vertex rebro1 = Vertex.vertexDifference(tCopy.v2, tCopy.v1);
+                Vertex rebro2 = Vertex.vertexDifference(tCopy.v3, tCopy.v1);
+                Vertex normal = Vertex.vertexMultiplication(rebro1, rebro2);
+                Vertex eyeView = Vertex.vertexDifference(camera.eye, tCopy.v1);
 
                 //
                 tCopy.v1 = model.multuplyColumn(camera.view, tCopy.v1);
@@ -117,17 +119,20 @@ public class Viewer {
                 tCopy.v1 = model.multuplyColumn(viewport, tCopy.v1);
                 tCopy.v2 = model.multuplyColumn(viewport, tCopy.v2);
                 tCopy.v3 = model.multuplyColumn(viewport, tCopy.v3);
-                tCopy.sort();
-
-                Vertex normal = Vertex.vertexMultiplication(tCopy.v1, tCopy.v2);
+//                Vertex rebro1 = Vertex.vertexDifference(tCopy.v2, tCopy.v1);
+//                Vertex rebro2 = Vertex.vertexDifference(tCopy.v3, tCopy.v1);
+//                Vertex normal = Vertex.vertexMultiplication(rebro1, rebro2);
                 normal = Vertex.normalize(normal);
-                Vertex eyeView = Vertex.vertexDifference(camera.eye, tCopy.v1);
+                eyeView = Vertex.normalize(eyeView);
+                tCopy.sort();
                 float decision = eyeView.x*normal.x + eyeView.y*normal.y + eyeView.z*normal.z;
-                Vertex light = new Vertex(0, 0, 100);
+                Vertex light = new Vertex(-1, -1, -1);
                 light = Vertex.normalize(light);
-                float angle = normal.x * light.x + normal.y * light.y + normal.z * light.z;
-                double shade = (Math.pow(255, 2.4) * angle);
-                int lightning = (int) Math.pow(shade, 1/2.4);
+                float angle = normal.x * -light.x + normal.y * -light.y + normal.z * -light.z;
+                angle = Math.max(0, angle);
+                angle = (float) Math.pow(angle, 1/2.2f) * 255;
+                // double shade = (255 * angle);
+                int lightning = (int) angle;
                 g2.setColor(new Color(lightning, lightning, lightning));
                 if (decision > 0) {
                     fillPolygon(tCopy);
@@ -141,6 +146,7 @@ public class Viewer {
 //                g2.draw(path);
 
             }
+
         }
 
           /*public void drawPolygon(Vertex v1, Vertex v2, Vertex v3){
@@ -150,130 +156,85 @@ public class Viewer {
        }*/
 
         public void fillPolygon(Polygon t){
-            float crossX1;
-            float crossX2;
-            float crossZ1;
-            float crossZ2;
+//            float crossX1;
+//            float crossX2;
+//            float crossZ1;
+//            float crossZ2;
             float dx1 = t.v2.x - t.v1.x;
             float dy1 = t.v2.y - t.v1.y;
             float dz1 = t.v2.z - t.v1.z;
             float dx2 = t.v3.x - t.v1.x;
             float dy2 = t.v3.y - t.v1.y;
             float dz2 = t.v3.z - t.v1.z;
-            float topY = t.v1.y;
+            float dx3 = t.v3.x - t.v2.x;
+            float dy3 = t.v3.y - t.v2.y;
+            float dz3 = t.v3.z - t.v2.z;
+            float kx1 = dx1/dy1;
+            float kx2 = dx2/dy2;
+            float kx3 = dx3/dy3;
+            float kz1 = dz1/dy1;
+            float kz2 = dz2/dy2;
+            float kz3 = dz3/dy3;
 
-            while(topY < t.v2.y){
-                crossX1 = t.v1.x + dx1 * (topY - t.v1.y) / dy1;
-                crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
-                crossZ1 = t.v1.z + dz1 * (topY - t.v1.y) / dy1;
-                crossZ2 = t.v1.z + dz2 * (topY - t.v1.y) / dy2;
-                //drawDDALineA(crossX1, topY, crossX2, topY);
-                drawDDALine(crossX1, topY, crossZ1, crossX2, topY, crossZ2);
-                topY++;
-            }
+            int topY = (int) Math.max(Math.ceil(t.v1.y), 0);
+            int bottomY = (int) Math.min(Math.ceil(t.v3.y), frame.getHeight()-1);
 
-            dx1 = t.v3.x - t.v2.x;
-            dy1 = t.v3.y - t.v2.y;
-            dz1 = t.v3.z - t.v2.z;
+            for (int y = topY; y < bottomY; y++){
+                float crossX1 = y < t.v2.y ? t.v1.x + kx1 * (y - t.v1.y) : t.v2.x + kx3 * (y - t.v2.y);
+                float crossX2 = t.v1.x + kx2 * (y - t.v1.y);
+                float crossZ1 = y < t.v2.y ? t.v1.z + kz1 * (y - t.v1.y) : t.v2.z + kz3 * (y - t.v2.y);
+                float crossZ2 = t.v1.z + kz2 * (y - t.v1.y);
+                if (crossX1 > crossX2){
+                    float temp = crossX1;
+                    crossX1 = crossX2;
+                    crossX2 = temp;
+                    temp = crossZ1;
+                    crossZ1 = crossZ2;
+                    crossZ2 = temp;
+                }
+                float kz = (crossZ2 - crossZ1) / (crossX2 - crossX1);
+                int leftX = (int) Math.max(Math.ceil(crossX1), 0);
+                int rightX = (int) Math.min(Math.ceil(crossX2), frame.getWidth()-1);
 
-            while(topY < t.v3.y){
-                crossX1 = t.v2.x + dx1 * (topY - t.v2.y) / dy1;
-                crossX2 = t.v1.x + dx2 * (topY - t.v1.y) / dy2;
-                crossZ1 = t.v2.z + dz1 * (topY - t.v2.y) / dy1;
-                crossZ2 = t.v1.z + dz2 * (topY - t.v1.y) / dy2;
-                //drawDDALineA(crossX1, topY, crossX2, topY);
-                drawDDALine(crossX1, topY, crossZ1, crossX2, topY, crossZ2);
-                topY++;
-            }
-        }
-
-        //tried to redraw
-        void fillPolygonA(Polygon t){
-            float crossX1;
-            float crossX2;
-            float crossZ1;
-            float crossZ2;
-            float topY = t.v1.y;
-            float crossY = topY;
-
-            while(crossY <= t.v2.y){
-                float tCoef = findT(crossY, t.v2.y, topY);
-                crossX1 = t.v1.x + tCoef*(t.v2.x - t.v1.x);
-                crossZ1 = t.v1.z + tCoef*(t.v2.z - t.v1.z);
-                tCoef = findT(crossY, t.v3.y, topY);
-                crossX2 = t.v1.x + tCoef*(t.v3.x - t.v1.x);
-                crossZ2 = t.v1.z + tCoef*(t.v3.z - t.v1.z);
-                drawDDA(crossX1, crossY, crossZ1, crossX2, crossY, crossZ2);
-                crossY++;
-            }
-
-            while(crossY <= t.v3.y){
-                float tCoef = findT(crossY, t.v3.y, t.v2.y);
-                crossX1 = t.v2.x + tCoef*(t.v3.x - t.v2.x);
-                crossZ1 = t.v2.z + tCoef*(t.v3.z - t.v3.z);
-                tCoef = findT(crossY, t.v3.y, topY);
-                crossX2 = t.v1.x + tCoef*(t.v3.x - t.v1.x);
-                crossZ2 = t.v1.z + tCoef*(t.v3.z - t.v1.z);
-                drawDDA(crossX1, crossY, crossZ1, crossX2, crossY, crossZ2);
-                crossY++;
-            }
-        }
-
-        //tried to redraw
-        float findT(float y, float y1, float y0){
-           float t = (y - y0) / (y1 - y0);
-           return t;
-        }
-
-        //tried to redraw
-        public void drawDDA(float x1, float y1, float z1, float x2, float y2, float z2){
-            float crossX = x1;
-            float crossZ;
-            while(crossX <= x2){
-                float tCoef = findT(crossX, x2, x1);
-                crossZ = z1 + tCoef*(z2 - z1);
-                int indexX = (Math.round(crossX) < frame.getWidth() ? Math.round(crossX) : frame.getWidth() - 1);
-                int indexY = (Math.round(y1) < frame.getHeight() ? Math.round(y1) : frame.getHeight() - 1);
-                try {
-                    if (zBuffer[indexY][indexX] < crossZ) {
-                        zBuffer[indexY][indexX] = crossZ;
-                        g2.fillRect(indexX, indexY, 1, 1);
+                for (int x = leftX; x < rightX; x++){
+                    float z = crossZ1 + kz * (x - crossX1);
+                    if ((zBuffer[y][x] > z && camera.eye.z > 0) || (camera.eye.z < 0)) {
+                        zBuffer[y][x] = z;
+                        g2.fillRect(x, y, 1, 1);
                     }
                 }
-                catch (IndexOutOfBoundsException ignored){
-                }
-                crossX++;
+                //drawDDALine(crossX1, y, crossZ1, crossX2, y, crossZ2);
             }
 
         }
 
         public void drawDDALine(float x1, float y1, float z1, float x2, float y2, float z2){
             float dx = x2 - x1;
-            float dy = y2 - y1;
+            //float dy = y2 - y1;
             float dz = z2 - z1;
             int step;
-            step = Math.round(Math.max(Math.abs(dx), Math.abs(dy)));
+            step = Math.round(Math.max(Math.abs(dx), Math.abs(dz)));
             float xInc = dx / step;
-            float yInc = dy / step;
+           // float yInc = dy / step;
             float zInc = dz / step;
             float x = x1;
             float y = y1;
             float z = z1;
             for (int i = 0; i <= step; i++){
                 //
-                int indexX = (Math.round(x) < frame.getWidth() ? Math.round(x) : frame.getWidth() - 1);
-                int indexY = (Math.round(y) < frame.getHeight() ? Math.round(y) : frame.getHeight() - 1);
+                int indexX = (int)Math.ceil(x);
+                int indexY = (int)Math.ceil(y);
                 try {
-                    if ((zBuffer[indexY][indexX] < z && camera.eye.z > 0)|| (zBuffer[indexY][indexX] > z && camera.eye.z < 0)) {
+                    if ((zBuffer[indexY][indexX] > z && camera.eye.z > 0) || (camera.eye.z < 0)) {
                         zBuffer[indexY][indexX] = z;
-                        g2.fillRect(indexX, indexY, 1, 1);
+                       g2.fillRect(indexX, indexY, 1, 1);
                     }
                 }
                 catch (IndexOutOfBoundsException ignored){
                 }
                 //
                 x += xInc;
-                y += yInc;
+                //y += yInc;
                 z += zInc;
             }
         }
@@ -296,7 +257,21 @@ public class Viewer {
 
         public void freeZbuffer(){
             for (float[] row: zBuffer) {
-                Arrays.fill(row, Float.NEGATIVE_INFINITY);
+                Arrays.fill(row, Float.MAX_VALUE);
+            }
+        }
+
+        public void drawZbuffer(){
+            for (int i = 0; i < zBuffer.length; i++){
+                for (int j = 0; j < zBuffer[0].length; j++){
+                    if (zBuffer[i][j] == Float.NEGATIVE_INFINITY){
+                        g2.setColor(Color.BLACK);
+                    }
+                    else {
+                        g2.setColor(new Color(255, 0, 0));
+                    }
+                    g2.fillRect(j, i, 1, 1);
+                }
             }
         }
 
