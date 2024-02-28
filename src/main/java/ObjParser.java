@@ -29,10 +29,14 @@ public class ObjParser {
         String[] dataPieces = str.split(" ");
         switch (dataPieces[0]){
             case "f":
-                model.addPolygon(new Polygon(model, Integer.parseInt(dataPieces[1].split("/")[0]), Integer.parseInt(dataPieces[2].split("/")[0]), Integer.parseInt(dataPieces[3].split("/")[0])));
+                model.addPolygon(new Polygon(model, Integer.parseInt(dataPieces[1].split("/")[0]), Integer.parseInt(dataPieces[2].split("/")[0]), Integer.parseInt(dataPieces[3].split("/")[0]),
+                        Integer.parseInt(dataPieces[1].split("/")[2]), Integer.parseInt(dataPieces[2].split("/")[2]), Integer.parseInt(dataPieces[3].split("/")[2])));
                 break;
             case "v":
                 model.addVertex(new Vertex(Float.parseFloat(dataPieces[1]), Float.parseFloat(dataPieces[2]), Float.parseFloat(dataPieces[3])));
+                break;
+            case "vn":
+                model.addNormal(new Vertex(Float.parseFloat(dataPieces[1]), Float.parseFloat(dataPieces[2]), Float.parseFloat(dataPieces[3]), 0));
                 break;
         }
     }

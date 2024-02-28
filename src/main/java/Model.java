@@ -10,6 +10,7 @@ public class Model {
 
     ArrayList<Vertex> vertexes;
     ArrayList<Polygon> polygons;
+    ArrayList<Vertex> normals;
 
     public SimpleMatrix modelMatrix = new SimpleMatrix(new double[][] {
                 new double[]{50, 0, 0, 0},
@@ -21,6 +22,7 @@ public class Model {
     public Model() {
         vertexes = new ArrayList<Vertex>();
         polygons = new ArrayList<Polygon>();
+        normals = new ArrayList<Vertex>();
     }
 
     public void addVertex(Vertex vertex){
@@ -30,6 +32,8 @@ public class Model {
     public void addPolygon(Polygon polygon){
         polygons.add(polygon);
     }
+
+    public void addNormal(Vertex normal){ normals.add(normal); }
 
     public void enlargeModel(){
         SimpleMatrix zoomMatrix = new SimpleMatrix(new double[][] {
@@ -112,6 +116,18 @@ public class Model {
             v.z = (float) result.get(2, 0);
             v.w = (float) result.get(3, 0);
         return v;
+    }
+
+    public Vertex multuplyColumn2(SimpleMatrix currentMatrix, Vertex v){
+        SimpleMatrix vertex = new SimpleMatrix(new double[][]{
+                new double[]{v.x},
+                new double[]{v.y},
+                new double[]{v.z},
+                new double[]{v.w},
+        });
+        SimpleMatrix helpMatrix = currentMatrix;
+        SimpleMatrix result = helpMatrix.mult(vertex);
+        return new Vertex((float) result.get(0, 0), (float) result.get(1, 0), (float) result.get(2, 0), (float) result.get(3, 0));
     }
 
     public double getModelDepth(){

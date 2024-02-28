@@ -90,41 +90,67 @@ public class Viewer {
             Random random = new Random();
             camera.cameraNormalize();
             for (Polygon t : model.polygons) {
-                Polygon tCopy = new Polygon(new Vertex(t.v1.x, t.v1.y, t.v1.z),
-                        new Vertex(t.v2.x, t.v2.y, t.v2.z),
-                        new Vertex(t.v3.x, t.v3.y, t.v3.z));
+                //Polygon tCopy = t.getCopy();
+//                Polygon t = new Polygon(new Vertex(0, 0, 0), new Vertex(3, 0, 0), new Vertex(0, 4, 0), //test triangle
+//                        new Vertex(0, 0, 1, 0), new Vertex(1, 0, 0, 0), new Vertex(0, 1, 0, 0));
+                PolygonInSpaces tCopy = t.getCopyInSpaces();
 
-                tCopy.v1 = model.multuplyColumn(model.modelMatrix, tCopy.v1);
-                tCopy.v2 = model.multuplyColumn(model.modelMatrix, tCopy.v2);
-                tCopy.v3 = model.multuplyColumn(model.modelMatrix, tCopy.v3);
+//                tCopy.v1 = model.multuplyColumn(model.modelMatrix, tCopy.v1);
+//                tCopy.v2 = model.multuplyColumn(model.modelMatrix, tCopy.v2);
+//                tCopy.v3 = model.multuplyColumn(model.modelMatrix, tCopy.v3);
 
-                Vertex rebro1 = Vertex.vertexDifference(tCopy.v2, tCopy.v1);
-                Vertex rebro2 = Vertex.vertexDifference(tCopy.v3, tCopy.v1);
-                Vertex normal = Vertex.vertexMultiplication(rebro1, rebro2);
-                Vertex eyeView = Vertex.vertexDifference(camera.eye, tCopy.v1);
+                tCopy.v1World = model.multuplyColumn2(model.modelMatrix, tCopy.v1);
+                tCopy.v2World = model.multuplyColumn2(model.modelMatrix, tCopy.v2);
+                tCopy.v3World = model.multuplyColumn2(model.modelMatrix, tCopy.v3);
+                tCopy.vn1 = Vertex.normalize(model.multuplyColumn2(model.modelMatrix, tCopy.vn1));
+                tCopy.vn2 = Vertex.normalize(model.multuplyColumn2(model.modelMatrix, tCopy.vn2));
+                tCopy.vn3 = Vertex.normalize(model.multuplyColumn2(model.modelMatrix, tCopy.vn3));
 
-                //
-                tCopy.v1 = model.multuplyColumn(camera.view, tCopy.v1);
-                tCopy.v2 = model.multuplyColumn(camera.view, tCopy.v2);
-                tCopy.v3 = model.multuplyColumn(camera.view, tCopy.v3);
-                //
-                tCopy.v1 = model.multuplyColumn(projection, tCopy.v1);
-                tCopy.v2 = model.multuplyColumn(projection, tCopy.v2);
-                tCopy.v3 = model.multuplyColumn(projection, tCopy.v3);
+                //Polygon tWorldCopy = tCopy.getCopy();
 
-                tCopy.v1.deformation();
-                tCopy.v2.deformation();
-                tCopy.v3.deformation();
-
-                tCopy.v1 = model.multuplyColumn(viewport, tCopy.v1);
-                tCopy.v2 = model.multuplyColumn(viewport, tCopy.v2);
-                tCopy.v3 = model.multuplyColumn(viewport, tCopy.v3);
 //                Vertex rebro1 = Vertex.vertexDifference(tCopy.v2, tCopy.v1);
 //                Vertex rebro2 = Vertex.vertexDifference(tCopy.v3, tCopy.v1);
-//                Vertex normal = Vertex.vertexMultiplication(rebro1, rebro2);
-                normal = Vertex.normalize(normal);
-                eyeView = Vertex.normalize(eyeView);
-                tCopy.sort();
+                Vertex edge1 = Vertex.vertexDifference(tCopy.v2World, tCopy.v1World);
+                Vertex edge2 = Vertex.vertexDifference(tCopy.v3World, tCopy.v1World);
+                Vertex normal = Vertex.normalize(Vertex.vertexMultiplication(edge1, edge2));
+//                Vertex eyeView = Vertex.vertexDifference(camera.eye, tCopy.v1);
+                Vertex eyeView = Vertex.normalize(Vertex.vertexDifference(camera.eye, tCopy.v1World));
+
+                //
+//                tCopy.v1 = model.multuplyColumn(camera.view, tCopy.v1);
+//                tCopy.v2 = model.multuplyColumn(camera.view, tCopy.v2);
+//                tCopy.v3 = model.multuplyColumn(camera.view, tCopy.v3);
+//                //
+//                tCopy.v1 = model.multuplyColumn(projection, tCopy.v1);
+//                tCopy.v2 = model.multuplyColumn(projection, tCopy.v2);
+//                tCopy.v3 = model.multuplyColumn(projection, tCopy.v3);
+//
+//                tCopy.v1.deformation();
+//                tCopy.v2.deformation();
+//                tCopy.v3.deformation();
+//
+//                tCopy.v1 = model.multuplyColumn(viewport, tCopy.v1);
+//                tCopy.v2 = model.multuplyColumn(viewport, tCopy.v2);
+//                tCopy.v3 = model.multuplyColumn(viewport, tCopy.v3);
+                tCopy.v1Screen = model.multuplyColumn2(camera.view, tCopy.v1World);
+                tCopy.v2Screen = model.multuplyColumn2(camera.view, tCopy.v2World);
+                tCopy.v3Screen = model.multuplyColumn2(camera.view, tCopy.v3World);
+                //
+                tCopy.v1Screen = model.multuplyColumn2(projection, tCopy.v1Screen);
+                tCopy.v2Screen = model.multuplyColumn2(projection, tCopy.v2Screen);
+                tCopy.v3Screen = model.multuplyColumn2(projection, tCopy.v3Screen);
+
+                tCopy.v1Screen.deformation();
+                tCopy.v2Screen.deformation();
+                tCopy.v3Screen.deformation();
+
+                tCopy.v1Screen = model.multuplyColumn2(viewport, tCopy.v1Screen);
+                tCopy.v2Screen = model.multuplyColumn2(viewport, tCopy.v2Screen);
+                tCopy.v3Screen = model.multuplyColumn2(viewport, tCopy.v3Screen);
+
+ //               normal = Vertex.normalize(normal);
+ //               eyeView = Vertex.normalize(eyeView);
+                //tCopy.sort();
                 float decision = eyeView.x*normal.x + eyeView.y*normal.y + eyeView.z*normal.z;
                 Vertex light = new Vertex(-1, -1, -1);
                 light = Vertex.normalize(light);
@@ -135,7 +161,9 @@ public class Viewer {
                 int lightning = (int) angle;
                 g2.setColor(new Color(lightning, lightning, lightning));
                 if (decision > 0) {
-                    fillPolygon(tCopy);
+                    tCopy.sort();
+                    //fillPolygon(tCopy);
+                    interpolate(tCopy);
                 }
                 //drawPolygon(tCopy.v1, tCopy.v2, tCopy.v3);
 //                Path2D path = new Path2D.Double(); //default drawing
@@ -155,11 +183,117 @@ public class Viewer {
             drawDDALine(v3.x, v3.y, v1.x, v1.y);
        }*/
 
-        public void fillPolygon(Polygon t){
-//            float crossX1;
-//            float crossX2;
-//            float crossZ1;
-//            float crossZ2;
+    public void interpolate(PolygonInSpaces t){ //for Fong's lightening
+        //in screen coordinates
+        float dx1 = t.v2Screen.x - t.v1Screen.x;
+        float dy1 = t.v2Screen.y - t.v1Screen.y;
+        float dz1 = t.v2Screen.z - t.v1Screen.z;
+        float dx2 = t.v3Screen.x - t.v1Screen.x;
+        float dy2 = t.v3Screen.y - t.v1Screen.y;
+        float dz2 = t.v3Screen.z - t.v1Screen.z;
+        float dx3 = t.v3Screen.x - t.v2Screen.x;
+        float dy3 = t.v3Screen.y - t.v2Screen.y;
+        float dz3 = t.v3Screen.z - t.v2Screen.z;
+        float kx1 = dx1/dy1;
+        float kx2 = dx2/dy2;
+        float kx3 = dx3/dy3;
+        float kz1 = dz1/dy1;
+        float kz2 = dz2/dy2;
+        float kz3 = dz3/dy3;
+
+        //in world coordinates
+        Vertex dn1 = Vertex.vertexDifference(t.vn2, t.vn1);
+        Vertex dn2 = Vertex.vertexDifference(t.vn3, t.vn1);
+        Vertex dn3 = Vertex.vertexDifference(t.vn3, t.vn2);
+        Vertex kn1 = Vertex.divisionByNumber(dn1, dy1);
+        Vertex kn2 = Vertex.divisionByNumber(dn2, dy2);
+        Vertex kn3 = Vertex.divisionByNumber(dn3, dy3);
+        float dx1W = t.v2World.x - t.v1World.x;
+        float dx2W = t.v3World.x - t.v1World.x;
+        float dx3W = t.v3World.x - t.v2World.x;
+        float dy1W = t.v2World.y - t.v1World.y;
+        float dy2W = t.v3World.y - t.v1World.y;
+        float dy3W = t.v3World.y - t.v2World.y;
+        float dz1W = t.v2World.z - t.v1World.z;
+        float dz2W = t.v3World.z - t.v1World.z;
+        float dz3W = t.v3World.z - t.v2World.z;
+        float kx1W = dx1W/dy1W;
+        float kx2W = dx2W/dy2W;
+        float kx3W = dx3W/dy3W;
+        float kz1W = dz1W/dy1W;
+        float kz2W = dz2W/dy2W;
+        float kz3W = dz3W/dy3W;
+
+        int topY = (int) Math.max(Math.ceil(t.v1Screen.y), 0);
+        int bottomY = (int) Math.min(Math.ceil(t.v3Screen.y), frame.getHeight()-1);
+        float yW = t.v1World.y;
+
+        for (int y = topY; y < bottomY; y++){
+            float crossX1 = y < t.v2Screen.y ? t.v1Screen.x + kx1 * (y - t.v1Screen.y) : t.v2Screen.x + kx3 * (y - t.v2Screen.y);
+            float crossX2 = t.v1Screen.x + kx2 * (y - t.v1Screen.y);
+            float crossZ1 = y < t.v2Screen.y ? t.v1Screen.z + kz1 * (y - t.v1Screen.y) : t.v2Screen.z + kz3 * (y - t.v2Screen.y);
+            float crossZ2 = t.v1Screen.z + kz2 * (y - t.v1Screen.y);
+
+            float crossX1W = yW < t.v2World.y ? t.v1World.x + kx1W * (yW - t.v1World.y) : t.v2World.x + kx3W * (yW - t.v2World.y);
+            float crossX2W = t.v1World.x + kx2W * (yW - t.v1World.y);
+            float crossZ1W = yW < t.v2World.y ? t.v1World.z + kz1W * (yW - t.v1World.y) : t.v2World.z + kz3W * (yW - t.v2World.y);
+            float crossZ2W = t.v1World.z + kz2W * (yW - t.v1World.y);
+            Vertex crossN1 = yW < t.v2World.y ? Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn1,  yW - t.v1World.y)) : Vertex.vertexAdding(t.vn2, Vertex.multiplicationByNumber(kn3,  yW - t.v2World.y));
+            Vertex crossN2 = Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn2, yW - t.v1World.y));
+
+            if (crossX1 > crossX2){
+                float temp = crossX1;
+                crossX1 = crossX2;
+                crossX2 = temp;
+                temp = crossZ1;
+                crossZ1 = crossZ2;
+                crossZ2 = temp;
+            }
+
+            if (crossX1W > crossX2W){
+                float temp = crossX1W;
+                Vertex temp2 = crossN1;
+                crossX1W = crossX2W;
+                crossX2W = temp;
+                temp = crossZ1W;
+                crossZ1W = crossZ2W;
+                crossZ2W = temp;
+                crossN1 = crossN2;
+                crossN2 = temp2;
+            }
+
+            float kz = (crossZ2 - crossZ1) / (crossX2 - crossX1);
+            int leftX = (int) Math.max(Math.ceil(crossX1), 0);
+            int rightX = (int) Math.min(Math.ceil(crossX2), frame.getWidth()-1);
+
+            float kzW = (crossZ2W - crossZ1W) / (crossX2W - crossX1W);
+            Vertex kn = Vertex.divisionByNumber(Vertex.vertexDifference(crossN2, crossN1), crossX2W - crossX1W);
+            float xW = crossX1W;
+            float stepXInWorld = (crossX2W - crossX1W) / (crossX2 - crossX1);
+
+            for (int x = leftX; x < rightX; x++){
+                float z = crossZ1 + kz * (x - crossX1);
+                float zW = crossZ1W + kzW * (xW - crossX1W);
+                Vertex curN = Vertex.normalize(Vertex.vertexAdding(crossN1, Vertex.multiplicationByNumber(kn, xW - crossX1W)));
+                if ((zBuffer[y][x] > z && camera.eye.z > 0) || (camera.eye.z < 0)) {
+                    zBuffer[y][x] = z;
+                    ///////////////////////////////////////
+                    //Your calculations will be here
+                    // (x, y, z) - the point in screen coordinates
+                    // (xW, yW, zW) - the same point in world coordinates
+                    // curN - normal vertex to this point
+                    //////////////////////////////////////
+                    //if (!Double.isNaN(curN.x) && !Double.isNaN(curN.y) && !Double.isNaN(curN.z))
+                    g2.fillRect(x, y, 1, 1);
+                }
+                xW += stepXInWorld;
+            }
+            yW += dy2W / dy2;
+        }
+
+    }
+
+        public void fillPolygon(Polygon t){ //for Lambert's lightening
             float dx1 = t.v2.x - t.v1.x;
             float dy1 = t.v2.y - t.v1.y;
             float dz1 = t.v2.z - t.v1.z;
@@ -203,19 +337,18 @@ public class Viewer {
                         g2.fillRect(x, y, 1, 1);
                     }
                 }
-                //drawDDALine(crossX1, y, crossZ1, crossX2, y, crossZ2);
             }
 
         }
 
         public void drawDDALine(float x1, float y1, float z1, float x2, float y2, float z2){
             float dx = x2 - x1;
-            //float dy = y2 - y1;
+            float dy = y2 - y1;
             float dz = z2 - z1;
             int step;
             step = Math.round(Math.max(Math.abs(dx), Math.abs(dz)));
             float xInc = dx / step;
-           // float yInc = dy / step;
+            float yInc = dy / step;
             float zInc = dz / step;
             float x = x1;
             float y = y1;
@@ -234,7 +367,7 @@ public class Viewer {
                 }
                 //
                 x += xInc;
-                //y += yInc;
+                y += yInc;
                 z += zInc;
             }
         }
@@ -258,20 +391,6 @@ public class Viewer {
         public void freeZbuffer(){
             for (float[] row: zBuffer) {
                 Arrays.fill(row, Float.MAX_VALUE);
-            }
-        }
-
-        public void drawZbuffer(){
-            for (int i = 0; i < zBuffer.length; i++){
-                for (int j = 0; j < zBuffer[0].length; j++){
-                    if (zBuffer[i][j] == Float.NEGATIVE_INFINITY){
-                        g2.setColor(Color.BLACK);
-                    }
-                    else {
-                        g2.setColor(new Color(255, 0, 0));
-                    }
-                    g2.fillRect(j, i, 1, 1);
-                }
             }
         }
 

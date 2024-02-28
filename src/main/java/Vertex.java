@@ -4,11 +4,29 @@ public class Vertex {
     float z;
     float w;
 
+    public Vertex(){
+
+    }
+
+    public Vertex(Vertex vertex){
+        this.x = vertex.x;
+        this.y = vertex.y;
+        this.z = vertex.z;
+        this.w = vertex.w;
+    }
+
     public Vertex(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.w = 1;
+    }
+
+    public Vertex(float x, float y, float z, float w) { //for normals
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     public static Vertex vertexDifference(Vertex v1, Vertex v2){
@@ -25,7 +43,18 @@ public class Vertex {
         multiplication.y = v1.z * v2.x - v1.x * v2.z;
         multiplication.z = v1.x * v2.y - v1.y * v2.x;
         return multiplication;
+    }
 
+    public static Vertex vertexAdding(Vertex v1, Vertex v2){
+        return new Vertex(v1.x + v2.x , v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
+    }
+
+    public static Vertex multiplicationByNumber(Vertex v, float n){
+        return new Vertex(v.x * n, v.y * n, v.z * n, v.w * n);
+    }
+
+    public static Vertex divisionByNumber(Vertex v, float n){
+        return new Vertex(v.x / n, v.y / n, v.z / n, v.w / n);
     }
 
     public static Vertex normalize(Vertex v){
