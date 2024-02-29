@@ -13,6 +13,8 @@ public class Viewer {
         JPanel renderPanel;
         Camera camera;
         float[][] zBuffer;
+        Color modelColor = new Color(0, 128, 0);
+        Vertex Light = Vertex.normalize(new Vertex(-1, -1, -1));
 
         public void addModel(Model model){
             this.model = model;
@@ -152,14 +154,7 @@ public class Viewer {
  //               eyeView = Vertex.normalize(eyeView);
                 //tCopy.sort();
                 float decision = eyeView.x*normal.x + eyeView.y*normal.y + eyeView.z*normal.z;
-                Vertex light = new Vertex(-1, -1, -1);
-                light = Vertex.normalize(light);
-                float angle = normal.x * -light.x + normal.y * -light.y + normal.z * -light.z;
-                angle = Math.max(0, angle);
-                angle = (float) Math.pow(angle, 1/2.2f) * 255;
                 // double shade = (255 * angle);
-                int lightning = (int) angle;
-                g2.setColor(new Color(lightning, lightning, lightning));
                 if (decision > 0) {
                     tCopy.sort();
                     //fillPolygon(tCopy);
@@ -182,6 +177,76 @@ public class Viewer {
             drawDDALine(v2.x, v2.y, v3.x, v3.y);
             drawDDALine(v3.x, v3.y, v1.x, v1.y);
        }*/
+
+    public void LambertLight(Vertex normal){
+        Vertex light = new Vertex(-1, -1, -1);
+        light = Vertex.normalize(light);
+        float angle = normal.x * -light.x + normal.y * -light.y + normal.z * -light.z;
+        angle = Math.max(0, angle);
+        angle = (float) Math.pow(angle, 1/2.2f) * 255;
+        int lightning = (int) angle;
+        g2.setColor(new Color(lightning, lightning, lightning));
+
+    }
+
+    public void FongLight(Vertex CurN, Vertex pointWorld){
+        float modelColorRed = modelColor.getRed() / 255.f;
+        float modelColorGreen = modelColor.getGreen() / 255.f;
+        float modelColorBlue = modelColor.getBlue() / 255.f;
+
+        //FongBackground
+        Color backgroundColor = new Color(128, 128, 128);
+        float modelBackColorRed = Math.round(modelColorRed * backgroundColor.getRed());
+        float modelBackColorGreen = Math.round(modelColorGreen * backgroundColor.getGreen());
+        float modelBackColorBlue = Math.round(modelColorBlue * backgroundColor.getBlue());
+
+
+        //FongDiffuse
+        CurN = Vertex.normalize(CurN);
+        float angle = CurN.x * -Light.x + CurN.y * -Light.y + CurN.z * -Light.z;
+        angle = Math.max(0, angle);
+        Color diffuseLight = new Color(255, 255, 255);
+        float modelDiffColorRed = Math.round(modelColorRed * diffuseLight.getRed() * angle);
+        float modelDiffColorGreen = Math.round(modelColorGreen * diffuseLight.getGreen() * angle);
+        float modelDiffColorBlue = Math.round(modelColorRed * diffuseLight.getRed() * angle);
+
+        //FongSpecular
+        Color specularLight = diffuseLight;
+        double modelSpecularCoefRed = 0.2;
+        double modelSpecularCoefGreen = 0.2;
+        double modelSpecularCoefBlue = 0.2;
+        int specularCoef = 10;
+        Vertex eyeView =Vertex.vertexDifference(camera.eye, pointWorld);
+        eyeView = Vertex.normalize(eyeView);
+        Vertex reflection = ReflectLight(CurN, Light);
+        float reflectionAngle = reflection.x * eyeView.x + reflection.y * eyeView.y + reflection.z * eyeView.z;
+        reflectionAngle = Math.max(0, reflectionAngle);
+        reflectionAngle = (float) Math.pow(reflectionAngle, specularCoef);
+
+        float modelReflectColorRed = Math.round(modelSpecularCoefRed * specularLight.getRed() * reflectionAngle);
+        float modelReflectColorGreen = Math.round(modelSpecularCoefGreen * specularLight.getGreen() * reflectionAngle);
+        float modelReflectColorBlue = Math.round(modelSpecularCoefBlue * specularLight.getBlue() * reflectionAngle);
+
+        int Red = (int) (modelBackColorRed + modelDiffColorRed + modelReflectColorRed);
+        int Green = (int) (modelBackColorGreen + modelDiffColorGreen + modelReflectColorGreen);
+        int Blue = (int) (modelBackColorBlue + modelDiffColorBlue + modelReflectColorBlue);
+
+
+        Color currentModelColor = new Color(Red, Green, Blue);
+        g2.setColor(currentModelColor);
+    }
+
+    public Vertex ReflectLight(Vertex CurN, Vertex Light){
+        float angle = CurN.x * Light.x + CurN.y * Light.y + CurN.z * Light.z;
+        //angle = Math.max(0, angle);
+        Vertex deltaNorm = CurN;
+        deltaNorm.x = deltaNorm.x * angle * 2;
+        deltaNorm.y = deltaNorm.y * angle * 2;
+        deltaNorm.z = deltaNorm.z * angle * 2;
+        Vertex reflection = Vertex.vertexDifference(Light, deltaNorm);
+        return reflection;
+    }
+
 
     public void interpolate(PolygonInSpaces t){ //for Fong's lightening
         //in screen coordinates
@@ -282,6 +347,8 @@ public class Viewer {
                     // (x, y, z) - the point in screen coordinates
                     // (xW, yW, zW) - the same point in world coordinates
                     // curN - normal vertex to this point
+                    Vertex pointWorld = new Vertex(xW, yW, zW);
+                    FongLight(curN, pointWorld);
                     //////////////////////////////////////
                     //if (!Double.isNaN(curN.x) && !Double.isNaN(curN.y) && !Double.isNaN(curN.z))
                     g2.fillRect(x, y, 1, 1);
