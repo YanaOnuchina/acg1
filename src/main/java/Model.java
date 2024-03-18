@@ -13,9 +13,9 @@ public class Model {
     ArrayList<Vertex> normals;
 
     public SimpleMatrix modelMatrix = new SimpleMatrix(new double[][] {
-                new double[]{50, 0, 0, 0},
-                new double[]{0, 50, 0, 0},
-                new double[]{0, 0, 50, 0},
+                new double[]{1, 0, 0, 0},
+                new double[]{0, 1, 0, 0},
+                new double[]{0, 0, 1, 0},
                 new double[]{0, 0, 0, 1},
     });
 

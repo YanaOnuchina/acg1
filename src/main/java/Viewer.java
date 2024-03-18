@@ -77,8 +77,10 @@ public class Viewer {
             double aspect = (double)frame.getWidth()/frame.getHeight();
             double FOV = Math.toRadians(90);
             double depth = model.getModelDepth();
-            double znear = camera.eye.z;
-            double zfar = depth + znear;
+            double znear = 0.1;
+            double zfar = 100;
+           // double znear = camera.eye.z;
+           // double zfar = depth + znear;
 
             SimpleMatrix projection = new SimpleMatrix(new double[][] {
                     new double[]{1 / (aspect * Math.tan(FOV / 2)), 0, 0, 0},
@@ -202,7 +204,7 @@ public class Viewer {
 
 
         //FongDiffuse
-        CurN = Vertex.normalize(CurN);
+        //CurN = Vertex.normalize(CurN);
         float angle = CurN.x * -Light.x + CurN.y * -Light.y + CurN.z * -Light.z;
         angle = Math.max(0, angle);
         Color diffuseLight = new Color(255, 255, 255);
@@ -215,7 +217,7 @@ public class Viewer {
         double modelSpecularCoefRed = 0.2;
         double modelSpecularCoefGreen = 0.2;
         double modelSpecularCoefBlue = 0.2;
-        int specularCoef = 10;
+        int specularCoef = 64;
         Vertex eyeView =Vertex.vertexDifference(camera.eye, pointWorld);
         eyeView = Vertex.normalize(eyeView);
         Vertex reflection = ReflectLight(CurN, Light);
@@ -258,6 +260,18 @@ public class Viewer {
         float dz2 = t.v3Screen.z - t.v1Screen.z;
         float dx3 = t.v3Screen.x - t.v2Screen.x;
         float dy3 = t.v3Screen.y - t.v2Screen.y;
+        if (dy1 == 0){
+            dy1 = 0.000001f;
+            System.out.println("aaa");
+        }
+        if (dy2 == 0){
+            dy2 = 0.000001f;
+            System.out.println("bbb");
+        }
+        if (dy3 == 0){
+            dy3 = 0.000001f;
+            System.out.println("ccc");
+        }
         float dz3 = t.v3Screen.z - t.v2Screen.z;
         float kx1 = dx1/dy1;
         float kx2 = dx2/dy2;
@@ -282,16 +296,19 @@ public class Viewer {
         float dz1W = t.v2World.z - t.v1World.z;
         float dz2W = t.v3World.z - t.v1World.z;
         float dz3W = t.v3World.z - t.v2World.z;
-        float kx1W = dx1W/dy1W;
-        float kx2W = dx2W/dy2W;
-        float kx3W = dx3W/dy3W;
-        float kz1W = dz1W/dy1W;
-        float kz2W = dz2W/dy2W;
-        float kz3W = dz3W/dy3W;
+        float kx1W = dx1W/dy1;
+        float kx2W = dx2W/dy2;
+        float kx3W = dx3W/dy3;
+        float ky1W = dy1W/dy1;
+        float ky2W = dy2W/dy2;
+        float ky3W = dy3W/dy3;
+        float kz1W = dz1W/dy1;
+        float kz2W = dz2W/dy2;
+        float kz3W = dz3W/dy3;
 
         int topY = (int) Math.max(Math.ceil(t.v1Screen.y), 0);
         int bottomY = (int) Math.min(Math.ceil(t.v3Screen.y), frame.getHeight()-1);
-        float yW = t.v1World.y;
+        //float yW = t.v1World.y;
 
         for (int y = topY; y < bottomY; y++){
             float crossX1 = y < t.v2Screen.y ? t.v1Screen.x + kx1 * (y - t.v1Screen.y) : t.v2Screen.x + kx3 * (y - t.v2Screen.y);
@@ -299,12 +316,15 @@ public class Viewer {
             float crossZ1 = y < t.v2Screen.y ? t.v1Screen.z + kz1 * (y - t.v1Screen.y) : t.v2Screen.z + kz3 * (y - t.v2Screen.y);
             float crossZ2 = t.v1Screen.z + kz2 * (y - t.v1Screen.y);
 
-            float crossX1W = yW < t.v2World.y ? t.v1World.x + kx1W * (yW - t.v1World.y) : t.v2World.x + kx3W * (yW - t.v2World.y);
-            float crossX2W = t.v1World.x + kx2W * (yW - t.v1World.y);
-            float crossZ1W = yW < t.v2World.y ? t.v1World.z + kz1W * (yW - t.v1World.y) : t.v2World.z + kz3W * (yW - t.v2World.y);
-            float crossZ2W = t.v1World.z + kz2W * (yW - t.v1World.y);
-            Vertex crossN1 = yW < t.v2World.y ? Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn1,  yW - t.v1World.y)) : Vertex.vertexAdding(t.vn2, Vertex.multiplicationByNumber(kn3,  yW - t.v2World.y));
-            Vertex crossN2 = Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn2, yW - t.v1World.y));
+            float crossX1W = y < t.v2.y ? t.v1World.x + kx1W * (y - t.v1.y) : t.v2World.x + kx3W * (y - t.v2.y);
+            float crossX2W = t.v1World.x + kx2W * (y - t.v1.y);
+
+            float crossY1W = y < t.v2.y ? t.v1World.y + ky1W * (y - t.v1.y) : t.v2World.y + ky3W * (y - t.v2.y);
+            float crossY2W = t.v1World.y + ky2W * (y - t.v1.y);
+            float crossZ1W = y < t.v2.y ? t.v1World.z + kz1W * (y - t.v1.y) : t.v2World.z + kz3W * (y - t.v2.y);
+            float crossZ2W = t.v1World.z + kz2W * (y - t.v1.y);
+            Vertex crossN1 = y < t.v2.y ? Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn1,  y - t.v1.y)) : Vertex.vertexAdding(t.vn2, Vertex.multiplicationByNumber(kn3,  y - t.v2.y));
+            Vertex crossN2 = Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn2, y - t.v1.y));
 
             if (crossX1 > crossX2){
                 float temp = crossX1;
@@ -313,13 +333,13 @@ public class Viewer {
                 temp = crossZ1;
                 crossZ1 = crossZ2;
                 crossZ2 = temp;
-            }
-
-            if (crossX1W > crossX2W){
-                float temp = crossX1W;
+                temp = crossX1W;
                 Vertex temp2 = crossN1;
                 crossX1W = crossX2W;
                 crossX2W = temp;
+                temp = crossY2W;
+                crossY2W = crossY1W;
+                crossY1W = temp;
                 temp = crossZ1W;
                 crossZ1W = crossZ2W;
                 crossZ2W = temp;
@@ -327,20 +347,46 @@ public class Viewer {
                 crossN2 = temp2;
             }
 
+//            if (crossX1W > crossX2W){
+//                float temp = crossX1W;
+//                Vertex temp2 = crossN1;
+//                crossX1W = crossX2W;
+//                crossX2W = temp;
+//                temp = crossZ1W;
+//                crossZ1W = crossZ2W;
+//                crossZ2W = temp;
+//                crossN1 = crossN2;
+//                crossN2 = temp2;
+//                temp = crossY2W;
+//                crossY2W = crossY1W;
+//                crossY1W = temp;
+//
+//            }
+
             float kz = (crossZ2 - crossZ1) / (crossX2 - crossX1);
             int leftX = (int) Math.max(Math.ceil(crossX1), 0);
             int rightX = (int) Math.min(Math.ceil(crossX2), frame.getWidth()-1);
 
-            float kzW = (crossZ2W - crossZ1W) / (crossX2W - crossX1W);
-            Vertex kn = Vertex.divisionByNumber(Vertex.vertexDifference(crossN2, crossN1), crossX2W - crossX1W);
-            float xW = crossX1W;
-            float stepXInWorld = (crossX2W - crossX1W) / (crossX2 - crossX1);
+            float kxW = (crossX2W - crossX1W) / (crossX2 - crossX1);
+            float kyW = (crossY2W - crossY1W) / (crossX2 - crossX1);
+            float kzW = (crossZ2W - crossZ1W) / (crossX2 - crossX1);
+            if (crossX2 - crossX1 == 0){
+                System.out.println("ddd");
+            }
+            Vertex kn = Vertex.divisionByNumber(Vertex.vertexDifference(crossN2, crossN1), crossX2 - crossX1);
+            //float xW = crossX1W;
+
 
             for (int x = leftX; x < rightX; x++){
                 float z = crossZ1 + kz * (x - crossX1);
-                float zW = crossZ1W + kzW * (xW - crossX1W);
-                Vertex curN = Vertex.normalize(Vertex.vertexAdding(crossN1, Vertex.multiplicationByNumber(kn, xW - crossX1W)));
-                if ((zBuffer[y][x] > z && camera.eye.z > 0) || (camera.eye.z < 0)) {
+                float xW = crossX1W + kxW * (x - crossX1);
+                float yW = crossY1W + kyW * (x - crossX1);
+                float zW = crossZ1W + kzW * (x - crossX1);
+                Vertex d = Vertex.multiplicationByNumber(kn, x - crossX1);
+                Vertex b = Vertex.vertexAdding(crossN1, d);
+                Vertex curN = Vertex.normalize2(b);
+
+                if ((zBuffer[y][x] > z && camera.eye.z > 0)) {
                     zBuffer[y][x] = z;
                     ///////////////////////////////////////
                     //Your calculations will be here
@@ -348,17 +394,20 @@ public class Viewer {
                     // (xW, yW, zW) - the same point in world coordinates
                     // curN - normal vertex to this point
                     Vertex pointWorld = new Vertex(xW, yW, zW);
-                    FongLight(curN, pointWorld);
+                    Vertex curN_copy = new Vertex(curN.x, curN.y, curN.z, curN.w);
+                    FongLight(curN_copy, pointWorld);
                     //////////////////////////////////////
-                    //if (!Double.isNaN(curN.x) && !Double.isNaN(curN.y) && !Double.isNaN(curN.z))
+                    //for world coordinates debug
+                    Color a = new Color(Math.max(Math.min(xW, 1), 0), Math.max(Math.min(yW, 1), 0), Math.max(Math.min(zW, 1), 0));
+                    //for normals debug
+                    //Color a = new Color(Math.min((curN.x + 1) * 0.5f, 1), Math.min((curN.y + 1) * 0.5f, 1), Math.min((curN.z + 1) * 0.5f, 1));
+                    g2.setColor(a);
                     g2.fillRect(x, y, 1, 1);
                 }
-                xW += stepXInWorld;
             }
-            yW += dy2W / dy2;
         }
-
     }
+
 
         public void fillPolygon(Polygon t){ //for Lambert's lightening
             float dx1 = t.v2.x - t.v1.x;

@@ -66,6 +66,12 @@ public class Vertex {
 
     }
 
+    public static Vertex normalize2(Vertex v){
+        double length = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        return new Vertex((float) (v.x/length), (float) (v.y/length), (float) (v.z/length));
+
+    }
+
     public void deformation(){
         this.x = this.x/this.w;
         this.y = this.y/this.w;
