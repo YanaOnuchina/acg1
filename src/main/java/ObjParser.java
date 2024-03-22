@@ -7,7 +7,7 @@ public class ObjParser {
 
     public Model readFile(){
         try {
-            String filePath = Objects.requireNonNull(getClass().getClassLoader().getResource("plane.obj")).getPath();
+            String filePath = Objects.requireNonNull(getClass().getClassLoader().getResource("model.obj")).getPath();
             File modelFile = new File(filePath);
             Scanner reader = new Scanner(modelFile);
             Model model = new Model();

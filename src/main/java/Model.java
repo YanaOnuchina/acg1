@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Model {
 
     public final int ZOOM_POWER = 2;
-    public final double MOVEMENT = 10;
+    public final double MOVEMENT = 0.1;
     public final
 
     ArrayList<Vertex> vertexes;

@@ -76,11 +76,8 @@ public class Viewer {
 
             double aspect = (double)frame.getWidth()/frame.getHeight();
             double FOV = Math.toRadians(90);
-            double depth = model.getModelDepth();
             double znear = 0.1;
             double zfar = 100;
-           // double znear = camera.eye.z;
-           // double zfar = depth + znear;
 
             SimpleMatrix projection = new SimpleMatrix(new double[][] {
                     new double[]{1 / (aspect * Math.tan(FOV / 2)), 0, 0, 0},
@@ -240,8 +237,7 @@ public class Viewer {
 
     public Vertex ReflectLight(Vertex CurN, Vertex Light){
         float angle = CurN.x * Light.x + CurN.y * Light.y + CurN.z * Light.z;
-        //angle = Math.max(0, angle);
-        Vertex deltaNorm = CurN;
+        Vertex deltaNorm = new Vertex(CurN.x, CurN.y, CurN.z);
         deltaNorm.x = deltaNorm.x * angle * 2;
         deltaNorm.y = deltaNorm.y * angle * 2;
         deltaNorm.z = deltaNorm.z * angle * 2;
@@ -260,18 +256,6 @@ public class Viewer {
         float dz2 = t.v3Screen.z - t.v1Screen.z;
         float dx3 = t.v3Screen.x - t.v2Screen.x;
         float dy3 = t.v3Screen.y - t.v2Screen.y;
-        if (dy1 == 0){
-            dy1 = 0.000001f;
-            System.out.println("aaa");
-        }
-        if (dy2 == 0){
-            dy2 = 0.000001f;
-            System.out.println("bbb");
-        }
-        if (dy3 == 0){
-            dy3 = 0.000001f;
-            System.out.println("ccc");
-        }
         float dz3 = t.v3Screen.z - t.v2Screen.z;
         float kx1 = dx1/dy1;
         float kx2 = dx2/dy2;
@@ -308,7 +292,6 @@ public class Viewer {
 
         int topY = (int) Math.max(Math.ceil(t.v1Screen.y), 0);
         int bottomY = (int) Math.min(Math.ceil(t.v3Screen.y), frame.getHeight()-1);
-        //float yW = t.v1World.y;
 
         for (int y = topY; y < bottomY; y++){
             float crossX1 = y < t.v2Screen.y ? t.v1Screen.x + kx1 * (y - t.v1Screen.y) : t.v2Screen.x + kx3 * (y - t.v2Screen.y);
@@ -316,15 +299,15 @@ public class Viewer {
             float crossZ1 = y < t.v2Screen.y ? t.v1Screen.z + kz1 * (y - t.v1Screen.y) : t.v2Screen.z + kz3 * (y - t.v2Screen.y);
             float crossZ2 = t.v1Screen.z + kz2 * (y - t.v1Screen.y);
 
-            float crossX1W = y < t.v2.y ? t.v1World.x + kx1W * (y - t.v1.y) : t.v2World.x + kx3W * (y - t.v2.y);
-            float crossX2W = t.v1World.x + kx2W * (y - t.v1.y);
+            float crossX1W = y < t.v2Screen.y ? t.v1World.x + kx1W * (y - t.v1Screen.y) : t.v2World.x + kx3W * (y - t.v2Screen.y);
+            float crossX2W = t.v1World.x + kx2W * (y - t.v1Screen.y);
 
-            float crossY1W = y < t.v2.y ? t.v1World.y + ky1W * (y - t.v1.y) : t.v2World.y + ky3W * (y - t.v2.y);
-            float crossY2W = t.v1World.y + ky2W * (y - t.v1.y);
-            float crossZ1W = y < t.v2.y ? t.v1World.z + kz1W * (y - t.v1.y) : t.v2World.z + kz3W * (y - t.v2.y);
-            float crossZ2W = t.v1World.z + kz2W * (y - t.v1.y);
-            Vertex crossN1 = y < t.v2.y ? Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn1,  y - t.v1.y)) : Vertex.vertexAdding(t.vn2, Vertex.multiplicationByNumber(kn3,  y - t.v2.y));
-            Vertex crossN2 = Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn2, y - t.v1.y));
+            float crossY1W = y < t.v2Screen.y ? t.v1World.y + ky1W * (y - t.v1Screen.y) : t.v2World.y + ky3W * (y - t.v2Screen.y);
+            float crossY2W = t.v1World.y + ky2W * (y - t.v1Screen.y);
+            float crossZ1W = y < t.v2Screen.y ? t.v1World.z + kz1W * (y - t.v1Screen.y) : t.v2World.z + kz3W * (y - t.v2Screen.y);
+            float crossZ2W = t.v1World.z + kz2W * (y - t.v1Screen.y);
+            Vertex crossN1 = y < t.v2Screen.y ? Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn1,  y - t.v1Screen.y)) : Vertex.vertexAdding(t.vn2, Vertex.multiplicationByNumber(kn3,  y - t.v2Screen.y));
+            Vertex crossN2 = Vertex.vertexAdding(t.vn1, Vertex.multiplicationByNumber(kn2, y - t.v1Screen.y));
 
             if (crossX1 > crossX2){
                 float temp = crossX1;
@@ -346,23 +329,6 @@ public class Viewer {
                 crossN1 = crossN2;
                 crossN2 = temp2;
             }
-
-//            if (crossX1W > crossX2W){
-//                float temp = crossX1W;
-//                Vertex temp2 = crossN1;
-//                crossX1W = crossX2W;
-//                crossX2W = temp;
-//                temp = crossZ1W;
-//                crossZ1W = crossZ2W;
-//                crossZ2W = temp;
-//                crossN1 = crossN2;
-//                crossN2 = temp2;
-//                temp = crossY2W;
-//                crossY2W = crossY1W;
-//                crossY1W = temp;
-//
-//            }
-
             float kz = (crossZ2 - crossZ1) / (crossX2 - crossX1);
             int leftX = (int) Math.max(Math.ceil(crossX1), 0);
             int rightX = (int) Math.min(Math.ceil(crossX2), frame.getWidth()-1);
@@ -370,11 +336,7 @@ public class Viewer {
             float kxW = (crossX2W - crossX1W) / (crossX2 - crossX1);
             float kyW = (crossY2W - crossY1W) / (crossX2 - crossX1);
             float kzW = (crossZ2W - crossZ1W) / (crossX2 - crossX1);
-            if (crossX2 - crossX1 == 0){
-                System.out.println("ddd");
-            }
-            Vertex kn = Vertex.divisionByNumber(Vertex.vertexDifference(crossN2, crossN1), crossX2 - crossX1);
-            //float xW = crossX1W;
+            Vertex kn = Vertex.divisionByNumber(Vertex.vertexDifference(crossN2, crossN1),crossX2 - crossX1 );
 
 
             for (int x = leftX; x < rightX; x++){
@@ -395,13 +357,13 @@ public class Viewer {
                     // curN - normal vertex to this point
                     Vertex pointWorld = new Vertex(xW, yW, zW);
                     Vertex curN_copy = new Vertex(curN.x, curN.y, curN.z, curN.w);
-                    FongLight(curN_copy, pointWorld);
+                    FongLight(curN, pointWorld);
                     //////////////////////////////////////
                     //for world coordinates debug
-                    Color a = new Color(Math.max(Math.min(xW, 1), 0), Math.max(Math.min(yW, 1), 0), Math.max(Math.min(zW, 1), 0));
+                    //Color a = new Color(Math.max(Math.min(xW, 1), 0), Math.max(Math.min(yW, 1), 0), Math.max(Math.min(zW, 1), 0));
                     //for normals debug
                     //Color a = new Color(Math.min((curN.x + 1) * 0.5f, 1), Math.min((curN.y + 1) * 0.5f, 1), Math.min((curN.z + 1) * 0.5f, 1));
-                    g2.setColor(a);
+                    //g2.setColor(a);
                     g2.fillRect(x, y, 1, 1);
                 }
             }
